@@ -1,0 +1,171 @@
+---
+title: "ML_10min"
+author: "Eva Kleingeld"
+date: "August 4, 2016"
+output: pdf_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list=ls())
+
+#install required packages here
+
+#install.packages("Metrics")
+#install.packages("rattle")
+#install.packages("caret", dependencies = c("Imports", "Depends", "Suggests"))
+#install.packages("rpart.plot")
+#install.packages("DMwR")
+
+
+
+## Read in subset & environmental data
+
+#For 5 min: load("/usr/people/kleingel/R/Data_subsets/Data_5min.Rda")
+#Data_5min<-Data_5min[Data_5min$QUALITY=="valid", ]
+
+load("/usr/people/kleingel/R/Data_subsets/Data_10min.Rda")
+Data_10min <- Data_10min[Data_10min$QUALITY == "valid", ]
+
+## Drop the quality column
+Data_10min <- Data_10min[ ,-7]
+
+load("/usr/people/kleingel/R/Data_subsets/Env_Data.Rda")
+
+## Merge subset and environmental data
+data_GMS<-merge(Data_10min,Env_Data_4,by.x=c("LOCATION","SENSOR"),by.y=c("MISD","SENSOR"))
+
+## Split data_GMS into a training and test set
+
+Time_1 <- as.POSIXct("2016-06-28 00:05:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT")
+Time_2 <- as.POSIXct("2016-06-28 00:10:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT")  
+
+Train_data <- subset(data_GMS, data_GMS$TIMESTAMP == Time_1) 
+Test_data <- subset(data_GMS, data_GMS$TIMESTAMP == Time_2)
+
+```
+
+```{r}
+
+# Build a neural network with neuralnet (from neuralnet package)
+library(neuralnet)
+
+# First build a neural network without TL and TD
+# If you include TL and TD you may have to remove some stations because these variables can be NA -> then NN won't run
+
+n<-colnames(data_GMS)[7:(length(colnames(data_GMS)))]
+f <- as.formula(paste("TEMP ~", paste(n[!n %in% "TEMP"], collapse = " + ")))
+nn<-neuralnet(f,data=Train_data,hidden=c(5,3),linear.output=T)
+plot(nn)
+
+pr.nn <- compute(nn,Test_data[,7:length(colnames(Train_data))]) # select only relevant variables
+
+# This code is only for unscaling, right?
+pr.nn_<-pr.nn$net.result*(max(inputdata.sub$TW_1)-min(inputdata.sub$TW_1))+min(inputdata.sub$TW_1)
+test.r <- (test_$TW_1)*(max(inputdata.sub$TW_1)-min(inputdata.sub$TW_1))+min(inputdata.sub$TW_1)
+
+MSE.nn<-sum((test.r-pr.nn_)^2)/nrow(test_) #unscale
+
+
+
+# Calculate the MSE
+library(Metrics)
+library(ggplot2)
+
+mse(as.vector(Train_data$TEMP), as.vector(pr.nn$net.result))
+rmse(as.vector(Train_data$TEMP), as.vector(pr.nn$net.result))
+
+ggplot() + geom_point(aes(x = as.vector(Train_data$TEMP), y = as.vector(pr.nn$net.result)))
+
+```
+
+```{r }
+#library(doParallel)
+library(parallel)
+library(doParallel)
+library(foreach) #loop parallel
+# foreach () %doPar%
+
+cl<-makeCluster(4)
+registerDoParallel(cl)
+registerDoSEQ() ######### What does this function do?
+
+
+#example
+system.time(
+  t <-foreach(i=1:100000,combine=cbind) %dopar% { sqrt(i) }
+)[3]
+
+stopCluster(cl)
+CloseC
+
+## Normal run is faster?
+system.time( 
+  for (i in c(1:100000)) { 
+    t[i] <- sqrt(i) })
+
+
+library(doParallel)
+library(foreach)
+
+cl<-makeCluster(6)
+registerDoParallel(cl)
+
+#Meerdere computers
+user    <- 'Eva'
+primary <- 'pc150169.knmi.nl' #number of your computer .knmi.nl
+machineAddresses <- list(
+  list(host=primary,user=user,
+       ncore=4),
+  list(host= 'pc150395.knmi.nl',user=user,
+       ncore=1) #list all the computers you want to use with the number of cores
+)
+spec <- lapply(machineAddresses,
+               function(machine) {
+                 rep(list(list(host=machine$host,
+                               user=machine$user)),
+                     machine$ncore)
+               })
+spec <- unlist(spec,recursive=FALSE)
+parallelCluster <- parallel::makeCluster(type='PSOCK',
+                                         master=primary,
+                                         spec=spec)
+print(parallelCluster)
+clusterEvalQ(parallelCluster, library(doParallel)) #To check wether packages are available
+registerDoParallel(parallelCluster)
+#Here room for some calculations with a foreach loop
+
+stopCluster(parallelCluster)
+
+```
+
+```{r}
+# Building a tree
+library(caret)
+library(rpart)
+library(rattle)
+
+#Warning message rpart, gone but still bugs when using rpart2
+TreeModel <- train(form = f, data = Train_data, method = "rpart2")
+
+#MDSplot(RFModel$finalModel, RFModel$data)
+fancyRpartPlot(TreeModel$finalModel)
+
+# Try plotting a basic tree
+plot(TreeModel$finalModel, uniform = TRUE)
+text(TreeModel$finalModel, use.n = TRUE, all = TRUE)
+
+# Plot a tree from DMwR package: prettyTree
+# This tree does not look as nice as the facyRpartPlot tree.
+library(DMwR)
+prettyTree(TreeModel$finalModel)
+
+## Plotting a random forest
+#RF much slower
+RFModel <- train(form = f, data = Train_data, method = "parRF")
+plot(RFModel$finalModel,plotType="level")
+
+# Find a way of beautifully plotting a RF
+
+```
