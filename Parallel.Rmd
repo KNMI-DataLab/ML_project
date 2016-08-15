@@ -1,0 +1,74 @@
+---
+title: "Parallel"
+author: "Eva Kleingeld"
+date: "August 12, 2016"
+output: pdf_document
+---
+
+This script contains the code to build/run a model in parallel AND top build/run a model in parallel on multiple computers. 
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r }
+#library(doParallel)
+library(parallel)
+library(doParallel)
+library(foreach) #loop parallel
+# foreach () %doPar%
+
+cl<-makeCluster(4)
+registerDoParallel(cl)
+registerDoSEQ() ######### What does this function do?
+
+
+#example
+system.time(
+  t <-foreach(i=1:100000,combine=cbind) %dopar% { sqrt(i) }
+)[3]
+
+stopCluster(cl)
+CloseC
+
+## Normal run is faster?
+system.time( 
+  for (i in c(1:100000)) { 
+    t[i] <- sqrt(i) })
+
+
+library(doParallel)
+library(foreach)
+
+cl<-makeCluster(6)
+registerDoParallel(cl)
+
+#Meerdere computers
+user    <- 'Eva'
+primary <- 'pc150169.knmi.nl' #number of your computer .knmi.nl
+machineAddresses <- list(
+  list(host=primary,user=user,
+       ncore=4),
+  list(host= 'pc150395.knmi.nl',user=user,
+       ncore=1) #list all the computers you want to use with the number of cores
+)
+spec <- lapply(machineAddresses,
+               function(machine) {
+                 rep(list(list(host=machine$host,
+                               user=machine$user)),
+                     machine$ncore)
+               })
+spec <- unlist(spec,recursive=FALSE)
+parallelCluster <- parallel::makeCluster(type='PSOCK',
+                                         master=primary,
+                                         spec=spec)
+print(parallelCluster)
+clusterEvalQ(parallelCluster, library(doParallel)) #To check wether packages are available
+registerDoParallel(parallelCluster)
+#Here room for some calculations with a foreach loop
+
+stopCluster(parallelCluster)
+
+```
