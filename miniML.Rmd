@@ -8,8 +8,9 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-rm(list=ls())
 
+rm(list=ls())
+  
 #install required packages here
 
 #install.packages("Metrics")
@@ -17,21 +18,28 @@ rm(list=ls())
 #install.packages("caret", dependencies = c("Imports", "Depends", "Suggests"))
 #install.packages("rpart.plot")
 #install.packages("DMwR")
+install.packages("parallelRandomForest")
+```
 
 
+The following code reads in the 10 min subset and environmental data. 
+All "suspect" data is removed.
+The two datasets are then merged.
+The merged dataset is split in a test and training set. 
 
+```{r}
 ## Read in subset & environmental data
 
 #For 5 min: load("/usr/people/kleingel/R/Data_subsets/Data_5min.Rda")
 #Data_5min<-Data_5min[Data_5min$QUALITY=="valid", ]
 
-load("/usr/people/kleingel/R/Data_subsets/Data_10min.Rda")
+load("/usr/people/kleingel/Projects/MLProject/Data_10min.Rda")
 Data_10min <- Data_10min[Data_10min$QUALITY == "valid", ]
 
 ## Drop the quality column
 Data_10min <- Data_10min[ ,-7]
 
-load("/usr/people/kleingel/R/Data_subsets/Env_Data.Rda")
+load("/usr/people/kleingel/Projects/MLProject/Env_Data.Rda")
 
 ## Merge subset and environmental data
 data_GMS<-merge(Data_10min,Env_Data_4,by.x=c("LOCATION","SENSOR"),by.y=c("MISD","SENSOR"))
@@ -46,6 +54,11 @@ Test_data <- subset(data_GMS, data_GMS$TIMESTAMP == Time_2)
 
 ```
 
+Now, we start building models based on different ML algorithms. 
+
+
+
+Here, a neuralnet neural network is built. 
 ```{r}
 
 # Build a neural network with neuralnet (from neuralnet package)
@@ -61,14 +74,6 @@ plot(nn)
 
 pr.nn <- compute(nn,Test_data[,7:length(colnames(Train_data))]) # select only relevant variables
 
-# This code is only for unscaling, right?
-pr.nn_<-pr.nn$net.result*(max(inputdata.sub$TW_1)-min(inputdata.sub$TW_1))+min(inputdata.sub$TW_1)
-test.r <- (test_$TW_1)*(max(inputdata.sub$TW_1)-min(inputdata.sub$TW_1))+min(inputdata.sub$TW_1)
-
-MSE.nn<-sum((test.r-pr.nn_)^2)/nrow(test_) #unscale
-
-
-
 # Calculate the MSE
 library(Metrics)
 library(ggplot2)
@@ -76,96 +81,124 @@ library(ggplot2)
 mse(as.vector(Train_data$TEMP), as.vector(pr.nn$net.result))
 rmse(as.vector(Train_data$TEMP), as.vector(pr.nn$net.result))
 
-ggplot() + geom_point(aes(x = as.vector(Train_data$TEMP), y = as.vector(pr.nn$net.result)))
+## plot the actual values v.s. the predicted values
+ggplot() + geom_point(aes(x = as.vector(Train_data$TEMP), y = as.vector(pr.nn$net.result))) +
+           labs(x = "Measured temperature", y = "Predicted temperature")
 
 ```
 
-```{r }
-#library(doParallel)
-library(parallel)
-library(doParallel)
-library(foreach) #loop parallel
-# foreach () %doPar%
 
-cl<-makeCluster(4)
-registerDoParallel(cl)
-registerDoSEQ() ######### What does this function do?
-
-
-#example
-system.time(
-  t <-foreach(i=1:100000,combine=cbind) %dopar% { sqrt(i) }
-)[3]
-
-stopCluster(cl)
-CloseC
-
-## Normal run is faster?
-system.time( 
-  for (i in c(1:100000)) { 
-    t[i] <- sqrt(i) })
-
-
-library(doParallel)
-library(foreach)
-
-cl<-makeCluster(6)
-registerDoParallel(cl)
-
-#Meerdere computers
-user    <- 'Eva'
-primary <- 'pc150169.knmi.nl' #number of your computer .knmi.nl
-machineAddresses <- list(
-  list(host=primary,user=user,
-       ncore=4),
-  list(host= 'pc150395.knmi.nl',user=user,
-       ncore=1) #list all the computers you want to use with the number of cores
-)
-spec <- lapply(machineAddresses,
-               function(machine) {
-                 rep(list(list(host=machine$host,
-                               user=machine$user)),
-                     machine$ncore)
-               })
-spec <- unlist(spec,recursive=FALSE)
-parallelCluster <- parallel::makeCluster(type='PSOCK',
-                                         master=primary,
-                                         spec=spec)
-print(parallelCluster)
-clusterEvalQ(parallelCluster, library(doParallel)) #To check wether packages are available
-registerDoParallel(parallelCluster)
-#Here room for some calculations with a foreach loop
-
-stopCluster(parallelCluster)
-
-```
-
+Build a decision tree
 ```{r}
-# Building a tree
+# Building a tree with the caret package
 library(caret)
 library(rpart)
 library(rattle)
 
-#Warning message rpart, gone but still bugs when using rpart2
-TreeModel <- train(form = f, data = Train_data, method = "rpart2")
+# Build a tree model with the train data
+# There are multiple ways to do this: see below
+# Warning message rpart, gone but still bugs when using rpart2
+TreeModel <- train(form = f, data = Train_data, method = "rpart")
+TreeModel2 <- train(x  = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP, method = "rpart")
+compiler::setCompilerOptions(optimize = 1)
 
-#MDSplot(RFModel$finalModel, RFModel$data)
+
+# Plot the decision tree you have built (:TreeModel$finalModel)
 fancyRpartPlot(TreeModel$finalModel)
+fancyRpartPlot(TreeModel2$finalModel)
 
-# Try plotting a basic tree
+# In order to plot a basic tree
 plot(TreeModel$finalModel, uniform = TRUE)
 text(TreeModel$finalModel, use.n = TRUE, all = TRUE)
 
-# Plot a tree from DMwR package: prettyTree
-# This tree does not look as nice as the facyRpartPlot tree.
-library(DMwR)
-prettyTree(TreeModel$finalModel)
+# To test variable importance you can use
+TreeModel2_Imp <- varImp(TreeModel2)
+plot(varImp(TreeModel2))
 
-## Plotting a random forest
-#RF much slower
-RFModel <- train(form = f, data = Train_data, method = "parRF")
+
+# Predict with test set based on TreeModel
+# The predict() function predicts TW values (:numeric)
+# You can write both TreeModel$finalModel and TreeModel
+Tree_Predict <- predict(TreeModel2, newdata = Test_data[7:(length(colnames(data_GMS)))])
+plot(Tree_Predict)
+
+# The extractPrediction() function gives you more information
+# Put your model in a list, because otherwise you can get an error
+Tree_Predict2 <- extractPrediction(list(TreeModel), testX = Test_data[7:(length(colnames(data_GMS)))])
+
+# Plot observed vs. predicted 
+plotObsVsPred(Tree_Predict2)
+
+# Plot manually (ggplot2) 
+ggplot() + geom_point(aes(x = Tree_Predict2$obs, y = Tree_Predict2$pred))
+
+```
+
+Build a Random Forest (RF)
+``` {r}
+# Buil a Random Forest (RF) with the training data set
+# The RF is much slower to build than the decision tree
+# Can be useful to set importance to TRUE, does increase computation time
+# You can train the RF model in two different ways.
+# The first requires you to specify a formula and a dataframe (comp time: 220.6 seconds)
+# The second requires you to specify the predictor values and response variable (comp time: 219.5 seconds)
+system.time(RFModel <- train(form = f, data = Train_data, method = "parRF", importance = TRUE))
+compiler::setCompilerOptions(optimize = 1)
+
+system.time(RFModel2 <- train(x = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP, method = "parRF", importance = TRUE))
+compiler::setCompilerOptions(optimize = 1)
+
+# It is also possible to use the randomforest package directly. This method can also use the two different ways
+library(parallelRandomForest)
+
+system.time(RFModel3 <- randomForest(x = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP))
+
+
+
+# Plot the RF model you have built: How many trees until the error decreases? 
 plot(RFModel$finalModel,plotType="level")
 
 # Find a way of beautifully plotting a RF
 
+# Importance of input variables/features for RF:
+# Importance measure = 1 = mean decrease in accuracy = IncMSE
+# This can only be calculated if importance = TRUE in train() (part of RandomForest package)
+Importance_RF_1 <- importance(RFModel$finalModel, type = 1)
+dotplot(Importance_RF_1)
+
+# Importance measure = 2 = decrease in node impurity
+Importance_RF_2 <- importance(RFModel$finalModel, type = 2)
+dotplot(Importance_RF_2)
+
+# With varImp
+Importance_RF_3 <- varImp(RFModel, scale = FALSE)
+plot(Importance_RF_3)
+
+# Make a partial plot
+# A partial plot does not make sense for dummy variables. Relevant columns are 7 until 10. Partial plots are only made for relevant columns. 
+# Train_data argument in partialPlot is set to a subset of the data because partialPlot cannot handle NA. But because f excludes columns up until Train_data[ ,7] this should not pose a problem
+# The for loop uses seq_along() and vector[i] structure because partialPlot throws an error otherwise
+
+Rel_vars <- colnames(Train_data[ ,7:10])
+
+par(mfrow = c(1, length(Rel_vars)))
+
+for (i in seq_along(Rel_vars)){
+  print(i)
+  partialPlot(RFModel$finalModel, pred.data = Train_data[7:(length(colnames(data_GMS)))], x.var = Rel_vars[i], xlab = Rel_vars[i], ylab = "Model predicted temperature", main = paste("Partial plot of", Rel_vars[i]))
+  
+}
+
+dev.off()
+
+# Predict with your RF
+
+RF_Predict <-  extractPrediction(list(RFModel), testX = Test_data[7:(length(colnames(data_GMS)))])
+
+
+
 ```
+
+
+
+
