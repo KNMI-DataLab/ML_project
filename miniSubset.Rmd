@@ -1,0 +1,118 @@
+---
+title: "miniSubset"
+author: "Eva Kleingeld"
+date: "August 12, 2016"
+output: pdf_document
+---
+
+---
+title: "5_min_subset"
+author: "Eva Kleingeld"
+date: "August 2, 2016"
+output: pdf_document
+---
+
+Standaard instellingen:
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+rm(list=ls())
+
+#all extra required packages here
+#install.packages("lubridate")
+
+```
+
+```{r}
+
+## Load in the data
+Col_Classes_1 <- c("integer", "POSIXct", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "factor", "factor", "factor", "numeric", "logical", "logical", "character")
+
+Data_2016_06_28 <- read.csv("/data/project/GMS/data/GMSraw/2016-06-28.csv", colClasses = Col_Classes_1)
+Data_2016_06_28$TIMESTAMP <- as.POSIXct(Data_2016_06_28$TIMESTAMP, tz = "GMT")
+
+## Extract a five minute subset
+# Time_Sub <- as.POSIXct("2016-06-28 09:00:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT")
+# Data_Subset <- subset(Data_2016_06_28, Data_2016_06_28$TIMESTAMP == Time_Sub)
+
+
+## Extract a 10 min subset (00:05:00 -00:10:00)
+library(lubridate)
+
+Time_1 <- as.POSIXct("2016-06-28 00:05:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT")
+Time_2 <- as.POSIXct("2016-06-28 00:10:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT")
+The_Interval <- new_interval(Time_1, Time_2)
+
+Data_Subset <- Data_2016_06_28[Data_2016_06_28$TIMESTAMP %within% The_Interval,]
+
+
+## Some information on this subset
+str(Data_Subset)
+summary(Data_Subset)
+
+## Drop variables that are not of intrest by specifying columns you wish to keep
+
+Keep <- c( "LOCATION", "TIMESTAMP", "TW_1","TW_2", "TW_3", "TW_4", "TW_5", "TW_6", "TW_7", "TW_8", "TW_9", "TW_10", "TW_11", "TW_12", "TL", "TD")
+
+Data_Subset <- Data_Subset[Keep]
+
+## Melt Data_Subset
+# ID vars are LOCATION and TIMESTAMP, TL & TD
+# Optional: set na.rm = TRUE to remove NA values
+library(reshape2)
+
+Data_Subset <- melt(Data_Subset, id.vars = c("LOCATION", "TIMESTAMP", "TL", "TD"))
+colnames(Data_Subset)[5] <- "SENSOR"
+colnames(Data_Subset)[6] <- c("TEMP")
+
+## Download filtered GMS data
+Col_Classes_2 <- c("integer", "numeric", "character", "POSIXct", "character")
+Data_filtered <- read.csv("/data/project/GMS/data/GMSfiltered/2016-06-28.csv", header = FALSE, colClasses = Col_Classes_2)
+colnames(Data_filtered) <- c("LOCATION", "TEMP","SENSOR", "TIMESTAMP", "QUALITY")
+
+## Subset filtered data for same time period
+# For 5 min: Filtered_subset <- subset(Data_filtered, Data_filtered$TIMESTAMP == Time_Sub) 
+Filtered_subset <- Data_filtered[Data_filtered$TIMESTAMP %within% The_Interval,]
+
+
+## Merge Data & Filtered data by common columns 
+# Because the filtered subset contains no NA's the merged 5 min data frame also contains no NA's
+# For 5 min: Data_5min <- merge(Data_Subset, Filtered_subset, by = c("LOCATION", "TIMESTAMP", "SENSOR", "TEMP"))
+Data_10min <- merge(Data_Subset, Filtered_subset, by = c("LOCATION", "TIMESTAMP", "SENSOR", "TEMP"))
+
+# Add an extra column with time as integer (unix time: nr of seconds since Jan 01 1970 UTC)
+Data_10min$Unix_Time <- as.numeric(Data_10min$TIMESTAMP)
+
+
+## Now, explore the data a bit
+library(ggplot2)
+
+# Almost no suspect data
+ggplot(data = Data_10min, aes(x = TEMP, fill = QUALITY)) + geom_bar()
+which(Data_10min$QUALITY == "suspect")
+
+ggplot() + geom_point(data = Data_10min, aes(x = TEMP, y = TL, colour = QUALITY))
+ggplot() + geom_point(data = Data_10min, aes(x = TEMP, y = TD, colour = QUALITY))
+
+
+# How much of the original subset (Data_Subset) was NA?
+GoodData <- ((length(Data_Subset$TEMP) - length(Data_10min$TEMP)) / length(Data_Subset$TEMP)) *100
+Perc_NA <- 100 - GoodData
+
+
+## As a final step, save the  subset to the computer for later use 
+# Store as .csv
+# For 5 min: write.csv(x = Data_5min, file = "/usr/people/kleingel/R/Data_subsets/Data_5min.csv")
+write.csv(x = Data_10min, file = "/usr/people/kleingel/Projects/MLProject/Data_10min.csv")
+
+
+# Store as data frame
+# For 10 min: save(x = Data_5min, file = "/usr/people/kleingel/R/Data_subsets/Data_5min.Rda")
+save(x = Data_10min, file = "/usr/people/kleingel/Projects/MLProject/Data_10min.Rda")
+
+```
+
