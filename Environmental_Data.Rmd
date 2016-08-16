@@ -1,0 +1,139 @@
+---
+title: "Environmental_Data"
+author: "Eva Kleingeld"
+date: "August 12, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+
+#all extra required packages here
+#install.packages("dummies")
+
+```
+
+```{r}
+
+## First, read in all the environmental data sets 
+
+Soil_type <- read.csv("/data/project/GMS/data/auxcillary_data/Ancillary_point_data/Grondsoortenkaart_2006.txt")
+Height <- read.csv("/data/project/GMS/data/auxcillary_data/Ancillary_point_data/Height_divagis.txt")
+MetaData_GMScoding<- read.csv("/data/project/GMS/data/auxcillary_data/MetadataGMS/metadataGMScoding.csv", header = TRUE)
+
+## Soil_type: Drop columns you don't need
+Keep_Soil <- c("MSID", "LON", "LAT", "OMSCHRIJVI")
+Soil_Type <- Soil_type[Keep_Soil]
+
+## Height: Drop columns you don't need
+Keep_Height <- c("MSID", "LON", "LAT", "NLD_alt")
+Height <- Height[Keep_Height]
+
+## MetaData: Drop columns you don't need
+Keep_Meta <- c("loc_nr", "loc_lat", "loc_lon", "tw_1", "tw_2", "tw_3", "tw_4", "tw_5", "tw_6", "tw_7", "tw_8", "tw_9", "tw_10", "tw_11", "tw_12")
+Sensor_Codes <- MetaData_GMScoding[Keep_Meta] 
+colnames(Sensor_Codes) <- c("MSID", "LAT", "LON", "TW_1", "TW_2", "TW_3", "TW_4", "TW_5", "TW_6", "TW_7", "TW_8", "TW_9", "TW_10", "TW_11", "TW_12")
+
+## Melt the Sensor_Codes
+library(reshape2)
+Sensor_Codes <- melt(Sensor_Codes, id.vars = c("MSID", "LAT", "LON"))
+colnames(Sensor_Codes)[4] <- c("SENSOR")
+colnames(Sensor_Codes)[5] <- c("CODE")
+  
+
+## Merge Height and Soil_Type and Sensor_Codes data frames
+Env_Data <- merge(x = Height, y = Soil_Type, by = c("MSID", "LAT", "LON"))
+Env_Data_2 <- merge(x = Env_Data, y = Sensor_Codes, by = c("MSID"))
+
+## There are two different LAT/LON (.x and .y)
+## The .x are the "Rijksdriehoek" coordinates
+## The .y are normal coordinates
+## Here we drop the normal coordinates (.y)
+Env_Data_2 <- Env_Data_2[ , - c(6,7)]
+
+# Rename the .x lat/lon
+colnames(Env_Data_2)[2] <- "LAT"
+colnames(Env_Data_2)[3] <- "LON"
+
+
+## Some sensors need to be removed from the data. These stations are:
+  # No measurements 2014 - now: 108, 422, 818, 1015, 1502
+  # Test stations RWS: 1501, 1502, 1503 
+bad_stations <- c("108", "422", "818", "1015", "1501", "1502", "1503")
+
+for(i in bad_stations){
+  print(i)
+  Env_Data_2 <- Env_Data_2[!(Env_Data_2$MSID == i), ]
+}
+
+## The category 'Moerig op zand' does not occur often:
+ggplot() + geom_bar(data = Env_Data_2, aes(x = OMSCHRIJVI))
+
+## We decided to add 'Moerig op zand' to the 'Zand' category
+Env_Data_2$OMSCHRIJVI[Env_Data_2$OMSCHRIJVI == "Moerig op zand"] <- "Zand"
+any(Env_Data_2$OMSCHRIJVI == "Moerig op zand")
+
+## Splitting the CODE column into 6 columns
+Env_Data_2$CODE <- as.character(Env_Data_2$CODE)
+CODE_loose <- strsplit(Env_Data_2$CODE, "")
+
+Rijbaan <- sapply(CODE_loose, "[", i = 1)
+Rijstrook <- sapply(CODE_loose, "[", i = 2)
+Spitsstrook <- sapply(CODE_loose, "[", i = 3)
+Oprit <- sapply(CODE_loose, "[", i = 4)
+Afrit <- sapply(CODE_loose, "[", i = 5)
+Brug_of_Viaduct <- sapply(CODE_loose, "[", i = 6)
+
+CODE_DF <- cbind.data.frame(Rijbaan, Rijstrook, Spitsstrook, Oprit, Afrit, Brug_of_Viaduct)
+
+# Test if all went well: same data length as before?
+length(CODE_DF$Rijbaan) == length(Env_Data_2$CODE)
+
+# Add code DF to Env_Data
+Env_Data_3 <- cbind(Env_Data_2, CODE_DF)
+
+# Remove original code column
+Env_Data_3 <- Env_Data_3[ ,-7]
+
+# Remove all rows with only NA values: If a station does not have a sensor, throw away row for nonexistent sensor
+Env_Data_3 <- Env_Data_3[complete.cases(Env_Data_3), ]
+
+## Next, make dummy variables of (transformed) CODE and Soil_Type data
+library(dummies)
+
+Env_Data_4 <- dummy.data.frame(Env_Data_3, names = c("OMSCHRIJVI", "Rijbaan", "Rijstrook", "Brug_of_Viaduct"), sep = "_")
+colnames(Env_Data_4)[1:13] <- c("MISD", "LAT", "LON", "ALT", "Bebouwing", "Leem", "Lichte_klei", "Lichte_zavel", "Veen", "Water",   "Zand", "Zware_klei", "Zware_zavel")
+
+## Remove columns with CODE subset _NA
+##Env_Data_4 <- Env_Data_4[ ,-grep("NA$", colnames(Env_Data_4))]
+
+# Make the columns Afrit/Oprit and Spitsstrook integers instead of factors
+Env_Data_4[ , c(28:30)] <- sapply(Env_Data_4[ , c(28:30)], as.character)
+Env_Data_4[ , c(28:30)] <- sapply(Env_Data_4[ , c(28:30)], as.integer)
+
+
+## As a final step, save the environmental dataset to the computer for later use 
+# Store as .csv
+write.csv(x = Env_Data_4, file = "/usr/people/kleingel/Projects/MLProject/Env_Data.csv")
+
+# Store as data frame
+save(x = Env_Data_4, file = "/usr/people/kleingel/Projects/MLProject/Env_Data.Rda")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
