@@ -56,6 +56,32 @@ Test_data <- subset(data_GMS, data_GMS$TIMESTAMP == Time_2)
 
 Now, we start building models based on different ML algorithms. 
 
+First, we build a linear model 
+
+```{r}
+library(caret)
+
+n<-colnames(data_GMS)[7:(length(colnames(data_GMS)))]
+f <- as.formula(paste("TEMP ~", paste(n[!n %in% "TEMP"], collapse = " + ")))
+
+LinearModel <- train(form = f, data = Train_data, method = "lm")
+LinearModel2 <- train(x = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP, method = "lm")
+
+# Get the lm summary
+# The summary indicates that five variables are perfectly collinear (Coefficients: 5 not defined because of singularities)
+summary(LinearModel)
+
+# Predict with the lm model
+Linear_Predict <- extractPrediction(list(LinearModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
+
+# Plot observed vs predicted
+
+plotObsVsPred(Linear_Predict)
+ggplot(data = Linear_Predict) + geom_point(aes(x = obs, y = pred)) 
+```
+
+
+
 
 
 Here, a neuralnet neural network is built. 
@@ -124,7 +150,7 @@ plot(Tree_Predict)
 
 # The extractPrediction() function gives you more information
 # Put your model in a list, because otherwise you can get an error
-Tree_Predict2 <- extractPrediction(list(TreeModel), testX = Test_data[7:(length(colnames(data_GMS)))])
+Tree_Predict2 <- extractPrediction(list(TreeModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
 
 # Plot observed vs. predicted 
 plotObsVsPred(Tree_Predict2)
@@ -147,13 +173,6 @@ compiler::setCompilerOptions(optimize = 1)
 
 system.time(RFModel2 <- train(x = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP, method = "parRF", importance = TRUE))
 compiler::setCompilerOptions(optimize = 1)
-
-# It is also possible to use the randomforest package directly. This method can also use the two different ways
-library(parallelRandomForest)
-
-system.time(RFModel3 <- randomForest(x = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP))
-
-
 
 # Plot the RF model you have built: How many trees until the error decreases? 
 plot(RFModel$finalModel,plotType="level")
@@ -192,9 +211,15 @@ for (i in seq_along(Rel_vars)){
 dev.off()
 
 # Predict with your RF
+# I suspect that the first RF_predict won't run because the input for the extractPrediction function differs from the input that the train function was given. Therefore it may be a good idea to run the train function with the RFModel2 settings. 
+# However, TreeModel does not seem to have this issue?
+RF_Predict <-  extractPrediction(list(RFModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
+RF_Predict2 <-  extractPrediction(list(RFModel2), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
 
-RF_Predict <-  extractPrediction(list(RFModel), testX = Test_data[7:(length(colnames(data_GMS)))])
-
+# Plot observations versus predictions
+# Why does plotObsVsPred have two the same graphs?
+plotObsVsPred(RF_Predict2)
+ggplot(data = RF_Predict2) +geom_point(aes(x = pred, y = obs))
 
 
 ```
