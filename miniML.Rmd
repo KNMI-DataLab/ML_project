@@ -18,7 +18,7 @@ rm(list=ls())
 #install.packages("caret", dependencies = c("Imports", "Depends", "Suggests"))
 #install.packages("rpart.plot")
 #install.packages("DMwR")
-install.packages("parallelRandomForest")
+install.packages("RSNNS")
 ```
 
 
@@ -71,15 +71,22 @@ LinearModel2 <- train(x = Train_data[7:(length(colnames(data_GMS)))], y = Train_
 # The summary indicates that five variables are perfectly collinear (Coefficients: 5 not defined because of singularities)
 summary(LinearModel)
 
+# Calculate RMSE 
+Linear_Residuals <- residuals(LinearModel)
+sqrt(mean((Linear_Residuals)^2))
+
+# Caret RMSE
+LinearModel$results
+
 # Predict with the lm model
 Linear_Predict <- extractPrediction(list(LinearModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
 
 # Plot observed vs predicted
-
 plotObsVsPred(Linear_Predict)
 ggplot(data = Linear_Predict) + geom_point(aes(x = obs, y = pred)) 
-```
 
+
+```
 
 
 
@@ -112,6 +119,17 @@ ggplot() + geom_point(aes(x = as.vector(Train_data$TEMP), y = as.vector(pr.nn$ne
            labs(x = "Measured temperature", y = "Predicted temperature")
 
 ```
+
+Here a multilayer perceptron is built (: a neural network - like algorithm)
+
+```{r}
+library(RSNNS)
+
+
+```
+
+
+
 
 
 Build a decision tree
@@ -162,6 +180,8 @@ ggplot() + geom_point(aes(x = Tree_Predict2$obs, y = Tree_Predict2$pred))
 
 Build a Random Forest (RF)
 ``` {r}
+library(randomForest)
+
 # Buil a Random Forest (RF) with the training data set
 # The RF is much slower to build than the decision tree
 # Can be useful to set importance to TRUE, does increase computation time
@@ -220,6 +240,7 @@ RF_Predict2 <-  extractPrediction(list(RFModel2), testX = Test_data[7:(length(co
 # Why does plotObsVsPred have two the same graphs?
 plotObsVsPred(RF_Predict2)
 ggplot(data = RF_Predict2) +geom_point(aes(x = pred, y = obs))
+
 
 
 ```
