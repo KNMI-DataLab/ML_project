@@ -174,7 +174,35 @@ ggplot(data = MLP_Predict) + geom_point(aes(x = obs, y = pred))
 
 ```
 
+Build a Radial Basis Function Neural Network (rbf in short)
 
+```{r}
+# Takes very long time to run: 10.5 minutes! (commented for now)
+# This probably has to do with the default settings. Or the model tries to reduce the bias and this bias is very high right now.
+# Or input needs to be scaled first
+# RBFModel <- train(x = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP, method = "rbfDDA")
+compiler::setCompilerOptions(optimize = 1)
+
+# If you run from RSNNS package, the RBF is built quite quickly:
+RBFModel2 <- rbf(x = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP)
+
+# High RMSE
+plot(RBFModel)
+head(summary(RBFModel))
+
+# Model 2 has high SSE
+plotIterativeError(RBFModel2)
+
+# Model from train doesn't predict (pred = 0)
+RBF_Predict <- extractPrediction(list(RBFModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
+
+# predicting for the other model:
+RBF_Predict2 <- predict(RBFModel2, Test_data[7:(length(colnames(data_GMS)))])
+
+# For the other model, observed vs. predicted:
+ggplot() + geom_point(aes(x = Test_data$TEMP, y = RBF_Predict2))
+
+```
 
 
 
