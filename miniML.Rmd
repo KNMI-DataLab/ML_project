@@ -18,7 +18,8 @@ rm(list=ls())
 #install.packages("caret", dependencies = c("Imports", "Depends", "Suggests"))
 #install.packages("rpart.plot")
 #install.packages("DMwR")
-install.packages("RSNNS")
+#install.packages("RSNNS")
+#install.packages("devtools")
 ```
 
 
@@ -124,6 +125,51 @@ Here a multilayer perceptron is built (: a neural network - like algorithm)
 
 ```{r}
 library(RSNNS)
+library(caret)
+
+# Build the mlp model
+MLPModel <-  train(x  = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP, method = "mlp")
+compiler::setCompilerOptions(optimize = 1)
+
+# Extract a summary
+summary(MLPModel$finalModel)
+print(MLPModel$finalModel)
+
+# Plot MLP model
+# Import the plot.nnet function from Github. (There is a newer version with additional options, you can also download this function from GitHub, see research log)
+# This function can be used to plot multilayer perceptrons
+library(devtools)
+source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+
+# The code below shows that you cannot plot the $finalModel, but you can plot if you use mlp directly instead of via train
+plot.nnet(MLPModel$finalModel)
+MLP_test <- mlp(x  = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP)
+plot.nnet(MLP_test)
+
+# Even though 
+class(MLP_test)
+class(MLPModel$finalModel)
+
+# Further inspection reveals that MLP$finalModel contains more members (: list items) than the model made directly with the mlp package
+# Remove these members
+MLP_Adapted <- MLPModel$finalModel
+MLP_Adapted[16:19] <- NULL
+plot.nnet(MLP_Adapted)
+
+# Plot activation map (what is this?)
+plotActMap(Train_data[7:(length(colnames(data_GMS)))])
+
+# Plot the iterative error
+plotIterativeError(MLPModel$finalModel)
+
+# Extract predictions for MLP
+MLP_Predict <- extractPrediction(list(MLPModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
+
+# Plot observerd versus predicted
+# Deze plots laten zien dat het MLP op het moment maar 1 waarde voorspelt: ongeveer de gemiddelde waarde van Train_data$Temp
+# Meer data/normaliseren kan de oplossing zijn
+plotObsVsPred(MLP_Predict) 
+ggplot(data = MLP_Predict) + geom_point(aes(x = obs, y = pred))
 
 
 ```
