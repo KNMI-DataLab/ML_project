@@ -20,6 +20,7 @@ rm(list=ls())
 #install.packages("DMwR")
 #install.packages("RSNNS")
 #install.packages("devtools")
+#install.packages("kernlab")
 ```
 
 
@@ -174,8 +175,9 @@ ggplot(data = MLP_Predict) + geom_point(aes(x = obs, y = pred))
 
 ```
 
-Build a Radial Basis Function Neural Network (rbf in short)
 
+
+Build a Radial Basis Function Neural Network (rbf in short)
 ```{r}
 # Takes very long time to run: 10.5 minutes! (commented for now)
 # This probably has to do with the default settings. Or the model tries to reduce the bias and this bias is very high right now.
@@ -232,7 +234,6 @@ text(TreeModel$finalModel, use.n = TRUE, all = TRUE)
 # To test variable importance you can use
 TreeModel2_Imp <- varImp(TreeModel2)
 plot(varImp(TreeModel2))
-
 
 # Predict with test set based on TreeModel
 # The predict() function predicts TW values (:numeric)
@@ -320,5 +321,27 @@ ggplot(data = RF_Predict2) +geom_point(aes(x = pred, y = obs))
 ```
 
 
+
+Here, we test a Support Vector Machine (in short: svm) with a Radial Basis Function kernel 
+```{r}
+# Build the SVM model
+SVMradModel <- train(x  = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP, method = "svmRadialCost", scale = FALSE)
+compiler::setCompilerOptions(optimize = 1)
+
+# summary SVM
+summary(SVMradModel$finalModel)
+print(SVMradModel$finalModel)
+
+# Get the RMSE
+SVMradModel$results
+
+# Predict with the SVM
+SVMrad_Predict <- extractPrediction(list(SVMradModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
+
+# Plot predicted vs. observed
+plotObsVsPred(SVMrad_Predict)
+ggplot(data = SVMrad_Predict, aes(x = obs, y = pred)) + geom_point() + geom_abline(aes(slope =1, intercept = 0))
+
+```
 
 
