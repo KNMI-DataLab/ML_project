@@ -56,6 +56,44 @@ Test_data <- subset(data_GMS, data_GMS$TIMESTAMP == Time_2)
 
 ```
 
+
+Center and scale
+
+```{r}
+library(caret)
+
+# Test centering and scaling on a dataset without dummy vars.
+new_data <- cbind(Train_data[ ,5:6], Train_data[8:10])
+
+# Plot histograms of the new_data columns
+par(mfrow = c(1, length(new_data)))
+for (i in seq_along(colnames(new_data))){
+  
+  hist(new_data[ , i])
+}
+
+# Apply centering and scaling
+CenterScale <- preProcess(new_data)
+New_data_processed <- predict(CenterScale, new_data)
+
+# Plot histograms of the centered and scaled data
+par(mfrow = c(1, length(new_data)))
+for (i in seq_along(colnames(New_data_processed))){
+  
+  hist(New_data_processed[ , i])
+}
+
+
+```
+
+
+
+
+
+
+
+
+
 Now, we start building models based on different ML algorithms. 
 
 First, we build a linear model 
