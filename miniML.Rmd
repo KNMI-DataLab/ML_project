@@ -47,12 +47,16 @@ load("/usr/people/kleingel/Projects/MLProject/Env_Data.Rda")
 data_GMS<-merge(Data_10min,Env_Data_4,by.x=c("LOCATION","SENSOR"),by.y=c("MISD","SENSOR"))
 
 ## Split data_GMS into a training and test set
-
 Time_1 <- as.POSIXct("2016-06-28 00:05:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT")
 Time_2 <- as.POSIXct("2016-06-28 00:10:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT")  
 
 Train_data <- subset(data_GMS, data_GMS$TIMESTAMP == Time_1) 
 Test_data <- subset(data_GMS, data_GMS$TIMESTAMP == Time_2)
+
+## Drop the LOC/Sensor/Timestamp data because this will not be used for building the models
+Train_data <- Train_data[ ,-(1:3)]
+Test_data <- Test_data[ ,-(1:3)]
+
 
 ```
 
@@ -63,30 +67,73 @@ Center and scale
 library(caret)
 
 # Test centering and scaling on a dataset without dummy vars.
-new_data <- cbind(Train_data[ ,5:6], Train_data[8:10])
+new_data <- cbind(Train_data[ ,1:3], Train_data[5:7])
 
 # Plot histograms of the new_data columns
 par(mfrow = c(1, length(new_data)))
 for (i in seq_along(colnames(new_data))){
   
-  hist(new_data[ , i])
+  hist(new_data[ , i], main =  paste("Histogram of" , colnames(new_data)[i]), xlab = colnames(new_data)[i])
 }
 
 # Apply centering and scaling
-CenterScale <- preProcess(new_data)
+# You can also remove NA values here
+CenterScale <- preProcess(new_data, method = c("center", "scale"), na.remove = TRUE)
 New_data_processed <- predict(CenterScale, new_data)
 
 # Plot histograms of the centered and scaled data
-par(mfrow = c(1, length(new_data)))
+par(mfrow = c(1, length(New_data_processed)))
 for (i in seq_along(colnames(New_data_processed))){
   
-  hist(New_data_processed[ , i])
+  hist(New_data_processed[ , i], main =  paste("Histogram of" , colnames(New_data_processed)[i]), xlab = colnames(New_data_processed)[i])
 }
+dev.off()
 
+# Now apply centering and scaling to the entire data_GMS dataset
+CenterScale_GMS <- preProcess(x = data_GMS, method = c("center", "scale"), na.remove = TRUE)
+GMS_processed <- predict(CenterScale_GMS, data_GMS)
+
+hist(GMS_processed$Unix_Time)
+hist(GMS_processed$Brug_of_Viaduct_0)
+
+# Apply scaling and centering to the train and test data
+# You don't want to center or scale the dummy variables, so you transform only the first part of the data
+# Because we use only 5 min datasets it is useful to first drop the Unix_Time column: This value doesn't change because you only have 5 min data (:one measurement). For the bigger dataset you should not drop Unix_time!!!!
+
+Train_data <- Train_data[ ,-4]
+Test_data <- Test_data[ ,-4]
+
+# center and scale train and test data
+CenterScale_Train <- preProcess(x = Train_data[ ,(1:6)], method = c("center", "scale"), na.remove = TRUE)
+Train_data[ ,(1:6)] <- predict(CenterScale_Train, Train_data[ ,(1:6)])
+Test_data[ ,(1:6)] <- predict(CenterScale_Train, Test_data[ , (1:6)])
+
+# remove rows with NA values
+
+Train_data <- Train_data[complete.cases(Train_data), ]
+Test_data <- Test_data[complete.cases(Test_data), ]
 
 ```
 
+Build different inputs and outputs for the ML models
 
+```{r}
+
+#Build different inputs and outputs for the ML models
+
+## Input (: predictors), without TL and TD
+Train_X_1 <- Train_data[4:(length(colnames(Train_data)))]
+Test_X_1 <- Test_data[4:(length(colnames(Test_data)))]
+
+## Input (: predictors), with TL and TD
+Train_X_2 <- Train_data[2:(length(colnames(Train_data)))]
+Test_X_2 <- Test_data[2:(length(colnames(Test_data)))]
+
+## Output (:Target variable)
+Target_Train <- Train_data[, 1]
+Target_Test <- Test_data[, 1]
+
+```
 
 
 
@@ -101,29 +148,30 @@ First, we build a linear model
 ```{r}
 library(caret)
 
-n<-colnames(data_GMS)[7:(length(colnames(data_GMS)))]
+n<-colnames(Train_data)[2:(length(colnames(Train_data)))]
 f <- as.formula(paste("TEMP ~", paste(n[!n %in% "TEMP"], collapse = " + ")))
 
-LinearModel <- train(form = f, data = Train_data, method = "lm")
-LinearModel2 <- train(x = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP, method = "lm")
+#LinearModel <- train(form = f, data = Train_data, method = "lm")
+LinearModel2 <- train(x = Train_X_2, y = Target_Train, method = "lm")
 
 # Get the lm summary
 # The summary indicates that five variables are perfectly collinear (Coefficients: 5 not defined because of singularities)
-summary(LinearModel)
+summary(LinearModel2)
 
 # Calculate RMSE 
-Linear_Residuals <- residuals(LinearModel)
+Linear_Residuals <- residuals(LinearModel2)
 sqrt(mean((Linear_Residuals)^2))
 
 # Caret RMSE
-LinearModel$results
+LinearModel2$results
 
 # Predict with the lm model
-Linear_Predict <- extractPrediction(list(LinearModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
+Linear_Predict <- extractPrediction(list(LinearModel2), testX = Test_X_2, testY = Target_Test)
 
 # Plot observed vs predicted
 plotObsVsPred(Linear_Predict)
-ggplot(data = Linear_Predict) + geom_point(aes(x = obs, y = pred)) 
+ggplot(data = Linear_Predict) + geom_point(aes(x = obs, y = pred))+ geom_abline(aes(slope =1, intercept = 0))
+ 
 
 
 ```
@@ -137,26 +185,26 @@ Here, a neuralnet neural network is built.
 # Build a neural network with neuralnet (from neuralnet package)
 library(neuralnet)
 
-# First build a neural network without TL and TD
+# First build a neural network without TL and TD: set 4 in colname selection n
 # If you include TL and TD you may have to remove some stations because these variables can be NA -> then NN won't run
 
-n<-colnames(data_GMS)[7:(length(colnames(data_GMS)))]
+n<-colnames(Train_data)[2:(length(colnames(Train_data)))]
 f <- as.formula(paste("TEMP ~", paste(n[!n %in% "TEMP"], collapse = " + ")))
-nn<-neuralnet(f,data=Train_data,hidden=c(5,3),linear.output=T)
+nn<-neuralnet(f,data=Train_data,hidden=c(5),linear.output=T)
 plot(nn)
 
-pr.nn <- compute(nn,Test_data[,7:length(colnames(Train_data))]) # select only relevant variables
+pr.nn <- compute(nn,Test_X_2) # select only relevant variables
 
 # Calculate the MSE
 library(Metrics)
 library(ggplot2)
 
-mse(as.vector(Train_data$TEMP), as.vector(pr.nn$net.result))
-rmse(as.vector(Train_data$TEMP), as.vector(pr.nn$net.result))
+mse(as.vector(Target_Test), as.vector(pr.nn$net.result))
+rmse(as.vector(Target_Test), as.vector(pr.nn$net.result))
 
 ## plot the actual values v.s. the predicted values
-ggplot() + geom_point(aes(x = as.vector(Train_data$TEMP), y = as.vector(pr.nn$net.result))) +
-           labs(x = "Measured temperature", y = "Predicted temperature")
+ggplot() + geom_point(aes(x = as.vector(Target_Test), y = as.vector(pr.nn$net.result))) +
+           labs(x = "Measured temperature", y = "Predicted temperature")+ geom_abline(aes(slope =1, intercept = 0))
 
 ```
 
@@ -167,7 +215,7 @@ library(RSNNS)
 library(caret)
 
 # Build the mlp model
-MLPModel <-  train(x  = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP, method = "mlp")
+MLPModel <-  train(x  = Train_X_2, y = Target_Train, method = "mlp")
 compiler::setCompilerOptions(optimize = 1)
 
 # Extract a summary
@@ -182,7 +230,7 @@ source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a5
 
 # The code below shows that you cannot plot the $finalModel, but you can plot if you use mlp directly instead of via train
 plot.nnet(MLPModel$finalModel)
-MLP_test <- mlp(x  = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP)
+MLP_test <- mlp(x  = Train_X_2, y = Target_Train)
 plot.nnet(MLP_test)
 
 # Even though 
@@ -195,20 +243,22 @@ MLP_Adapted <- MLPModel$finalModel
 MLP_Adapted[16:19] <- NULL
 plot.nnet(MLP_Adapted)
 
+plot.nnet(MLP_test)
+
 # Plot activation map (what is this?)
-plotActMap(Train_data[7:(length(colnames(data_GMS)))])
+plotActMap(Train_X_1)
 
 # Plot the iterative error
 plotIterativeError(MLPModel$finalModel)
 
 # Extract predictions for MLP
-MLP_Predict <- extractPrediction(list(MLPModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
+MLP_Predict <- extractPrediction(list(MLPModel), testX = Test_X_2, testY = Target_Test)
 
 # Plot observerd versus predicted
 # Deze plots laten zien dat het MLP op het moment maar 1 waarde voorspelt: ongeveer de gemiddelde waarde van Train_data$Temp
 # Meer data/normaliseren kan de oplossing zijn
 plotObsVsPred(MLP_Predict) 
-ggplot(data = MLP_Predict) + geom_point(aes(x = obs, y = pred))
+ggplot(data = MLP_Predict) + geom_point(aes(x = obs, y = pred))+ geom_abline(aes(slope =1, intercept = 0))
 
 
 ```
@@ -224,23 +274,25 @@ Build a Radial Basis Function Neural Network (rbf in short)
 compiler::setCompilerOptions(optimize = 1)
 
 # If you run from RSNNS package, the RBF is built quite quickly:
-RBFModel2 <- rbf(x = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP)
+RBFModel2 <- rbf(x = Train_X_2, y = Target_Train)
+compiler::setCompilerOptions(optimize = 1)
 
 # High RMSE
-plot(RBFModel)
-head(summary(RBFModel))
+plot(RBFModel2)
+head(summary(RBFModel2))
 
 # Model 2 has high SSE
 plotIterativeError(RBFModel2)
 
 # Model from train doesn't predict (pred = 0)
-RBF_Predict <- extractPrediction(list(RBFModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
+RBF_Predict <- extractPrediction(list(RBFModel), testX = Test_X_2, testY = Target_Test)
 
 # predicting for the other model:
-RBF_Predict2 <- predict(RBFModel2, Test_data[7:(length(colnames(data_GMS)))])
+RBF_Predict2 <- predict(RBFModel2, Test_X_2)
 
 # For the other model, observed vs. predicted:
-ggplot() + geom_point(aes(x = Test_data$TEMP, y = RBF_Predict2))
+ggplot() + geom_point(aes(x = Test_data$TEMP, y = RBF_Predict2))+ geom_abline(aes(slope =1, intercept = 0))
+
 
 ```
 
@@ -256,8 +308,8 @@ library(rattle)
 # Build a tree model with the train data
 # There are multiple ways to do this: see below
 # Warning message rpart, gone but still bugs when using rpart2
-TreeModel <- train(form = f, data = Train_data, method = "rpart")
-TreeModel2 <- train(x  = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP, method = "rpart")
+#TreeModel <- train(form = f, data = Train_data, method = "rpart")
+TreeModel2 <- train(x  = Train_X_2, y = Target_Train, method = "rpart")
 compiler::setCompilerOptions(optimize = 1)
 
 
@@ -276,12 +328,12 @@ plot(varImp(TreeModel2))
 # Predict with test set based on TreeModel
 # The predict() function predicts TW values (:numeric)
 # You can write both TreeModel$finalModel and TreeModel
-Tree_Predict <- predict(TreeModel2, newdata = Test_data[7:(length(colnames(data_GMS)))])
+Tree_Predict <- predict(TreeModel2, newdata = Test_X_2)
 plot(Tree_Predict)
 
 # The extractPrediction() function gives you more information
 # Put your model in a list, because otherwise you can get an error
-Tree_Predict2 <- extractPrediction(list(TreeModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
+Tree_Predict2 <- extractPrediction(list(TreeModel2), testX = Test_X_2, testY = Target_Test)
 
 # Plot observed vs. predicted 
 plotObsVsPred(Tree_Predict2)
@@ -301,10 +353,11 @@ library(randomForest)
 # You can train the RF model in two different ways.
 # The first requires you to specify a formula and a dataframe (comp time: 220.6 seconds)
 # The second requires you to specify the predictor values and response variable (comp time: 219.5 seconds)
-system.time(RFModel <- train(form = f, data = Train_data, method = "parRF", importance = TRUE))
-compiler::setCompilerOptions(optimize = 1)
 
-system.time(RFModel2 <- train(x = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP, method = "parRF", importance = TRUE))
+#RFModel <- train(form = f, data = Train_data, method = "parRF", importance = TRUE)
+#compiler::setCompilerOptions(optimize = 1)
+
+RFModel2 <- train(x = Train_X_2, y = Target_Train, method = "parRF", importance = TRUE)
 compiler::setCompilerOptions(optimize = 1)
 
 # Plot the RF model you have built: How many trees until the error decreases? 
@@ -322,7 +375,7 @@ dotplot(Importance_RF_1)
 Importance_RF_2 <- importance(RFModel$finalModel, type = 2)
 dotplot(Importance_RF_2)
 
-# With varImp
+# With varImp <- preferable, uses %IncMSE
 Importance_RF_3 <- varImp(RFModel, scale = FALSE)
 plot(Importance_RF_3)
 
@@ -331,13 +384,13 @@ plot(Importance_RF_3)
 # Train_data argument in partialPlot is set to a subset of the data because partialPlot cannot handle NA. But because f excludes columns up until Train_data[ ,7] this should not pose a problem
 # The for loop uses seq_along() and vector[i] structure because partialPlot throws an error otherwise
 
-Rel_vars <- colnames(Train_data[ ,7:10])
+Rel_vars <- colnames(Train_data[ ,2:4])
 
 par(mfrow = c(1, length(Rel_vars)))
 
 for (i in seq_along(Rel_vars)){
   print(i)
-  partialPlot(RFModel$finalModel, pred.data = Train_data[7:(length(colnames(data_GMS)))], x.var = Rel_vars[i], xlab = Rel_vars[i], ylab = "Model predicted temperature", main = paste("Partial plot of", Rel_vars[i]))
+  partialPlot(RFModel2$finalModel, pred.data = Train_X_2, x.var = Rel_vars[i], xlab = Rel_vars[i], ylab = "Model predicted temperature", main = paste("Partial plot of", Rel_vars[i]))
   
 }
 
@@ -346,13 +399,13 @@ dev.off()
 # Predict with your RF
 # I suspect that the first RF_predict won't run because the input for the extractPrediction function differs from the input that the train function was given. Therefore it may be a good idea to run the train function with the RFModel2 settings. 
 # However, TreeModel does not seem to have this issue?
-RF_Predict <-  extractPrediction(list(RFModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
-RF_Predict2 <-  extractPrediction(list(RFModel2), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
+RF_Predict <-  extractPrediction(list(RFModel), testX = Test_X_1, testY = Target_Test)
+RF_Predict2 <-  extractPrediction(list(RFModel2), testX = Test_X_2, testY = Target_Test)
 
 # Plot observations versus predictions
 # Why does plotObsVsPred have two the same graphs?
 plotObsVsPred(RF_Predict2)
-ggplot(data = RF_Predict2) +geom_point(aes(x = pred, y = obs))
+ggplot(data = RF_Predict2) +geom_point(aes(x = pred, y = obs))+ geom_abline(aes(slope =1, intercept = 0))
 
 
 
@@ -363,7 +416,7 @@ ggplot(data = RF_Predict2) +geom_point(aes(x = pred, y = obs))
 Here, we test a Support Vector Machine (in short: svm) with a Radial Basis Function kernel 
 ```{r}
 # Build the SVM model
-SVMradModel <- train(x  = Train_data[7:(length(colnames(data_GMS)))], y = Train_data$TEMP, method = "svmRadialCost", scale = FALSE)
+SVMradModel <- train(x  = Train_X_2, y = Target_Train, method = "svmRadialCost", scale = FALSE)
 compiler::setCompilerOptions(optimize = 1)
 
 # summary SVM
@@ -374,7 +427,7 @@ print(SVMradModel$finalModel)
 SVMradModel$results
 
 # Predict with the SVM
-SVMrad_Predict <- extractPrediction(list(SVMradModel), testX = Test_data[7:(length(colnames(data_GMS)))], testY = Test_data$TEMP)
+SVMrad_Predict <- extractPrediction(list(SVMradModel), testX = Test_X_2, testY = Target_Test)
 
 # Plot predicted vs. observed
 plotObsVsPred(SVMrad_Predict)
