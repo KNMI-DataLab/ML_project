@@ -157,7 +157,7 @@ LinearModel2 <- train(x = Train_X_2, y = Target_Train, method = "lm")
 # Get the lm summary
 # The summary indicates that five variables are perfectly collinear (Coefficients: 5 not defined because of singularities)
 summary(LinearModel2)
-
+ 
 # Calculate RMSE 
 Linear_Residuals <- residuals(LinearModel2)
 sqrt(mean((Linear_Residuals)^2))
