@@ -65,7 +65,7 @@ Data_filtered_15_03_24 <- read.csv("/data/project/GMS/data/GMSfiltered/2015-03-2
                                    header = FALSE, colClasses = Col_Classes_2)
 Data_filtered_15_03_09 <- read.csv("/data/project/GMS/data/GMSfiltered/2015-03-09.csv", 
                                    header = FALSE, colClasses = Col_Classes_2)
-Data_filtered_13_12_03 <- read.csv("/data/project/GMS/data/GMSfiltered/2009-11-24.csv", 
+Data_filtered_13_12_03 <- read.csv("/data/project/GMS/data/GMSfiltered/2013-12-03.csv", 
                                    header = FALSE, colClasses = Col_Classes_2)
 
 # Merge all these filtered days into one dataframe
