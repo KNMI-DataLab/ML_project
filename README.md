@@ -21,5 +21,7 @@ Analyze_GMS_6Days.R - This script contains code to analyze the distribution of r
 
 -------- Scripts for testing functions that are relevant to the project -------------------------------------------------------
 
-Test_merge_join.R - Here we test wether the merge or the join function is the fastest for merging data frames. This is especially relevant because we will later merge (very) large data frames 
+Test_merge_join.R - Here we test wether the merge or the join function (dplyr package) is the fastest for merging data frames. This is especially relevant because we will later merge (very) large data frames. A faster merge will save much time. Spoilers: the join fucntion is 8x faster than merge for this small data set and has been shown to be even faster (compared to merge) on large data sets. 
+
+Test_Time_Slice.R - In this script the time slice function from the caret package is tested. This script was copy pasted from a Stackoverflow answer. (Stackoverflow post: http://stackoverflow.com/questions/24758218/time-series-data-spliting-and-model-evaluation)
 
