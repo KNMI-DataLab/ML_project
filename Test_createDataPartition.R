@@ -1,5 +1,5 @@
 # First empty environment and install relevant packages
-rm(list=ls())
+rm(list=ls()) 
 
 # call libraries 
 library(caret)
@@ -17,7 +17,7 @@ Testing <- Data_10min[-(Data_Partition), ]
 par(mfrow=c(1,3))
 
 hist(Data_10min$TEMP)
-hist(Training$TEMP)
+hist(Training$TEMP) 
 hist(Testing$TEMP)
 
 # Check the distribution of some other variables
