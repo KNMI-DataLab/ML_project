@@ -21,6 +21,7 @@ Six_Days_3$LOCATION <- as.factor(Six_Days_3$LOCATION)
 Six_Days_3$LOCSENS <-  interaction(Six_Days_3$LOCATION, Six_Days_3$SENSOR)
 
 # Plot TEMP per day for a given station
+library(ggplot2)
 plotStation <- function(Station_number){
 
 for (i in (unique(Six_Days_3$Date))){
@@ -92,7 +93,7 @@ for (i in seq_along(Dates)){
   print(Dates[i])
   
   Subset_Day <- Six_Days_3[Six_Days_3$Date == Dates[i], ]
-  Hist_plot <- ggplot(data = Six_Days_3, aes(x = TEMP)) + geom_histogram(color="black", fill = "lightblue") +
+  Hist_plot <- ggplot(data = Subset_Day, aes(x = TEMP)) + geom_histogram(color="black", fill = "lightblue") +
   ggtitle(paste("Date:", Dates[i]))
   Box_plot <- ggplot(data = Subset_Day, aes(x = Date, y = TEMP,  fill = QUALITY))+ 
          geom_boxplot()
@@ -101,6 +102,39 @@ for (i in seq_along(Dates)){
   
   multiplot(Hist_plot, Box_plot, Big_box_plot, cols = 1)
 }
+
+# In order to test if the TEMP data is normally distibuted you can do a Shapiro-Wilk test of normality,
+# and plot a Q-Q plot
+# However, Shapiro-Wilk does not work because there is too much data. Instead, make a Q-Q plot
+# For each day in the data set:
+
+for (i in seq_along(Dates)){
+  print(Dates[i])
+  Subset_Day <- Six_Days_3[Six_Days_3$Date == Dates[i], ]
+  qqnorm(Subset_Day$TEMP, main = paste("Normal Q-Q plot of day", Dates[i]))
+}
+
+# For the whole 6-day period:
+qqnorm(Six_Days_3$TEMP, main = "Q-Q plot of Road Temperature")
+
+# Do the same for TL and TD
+qqnorm(Six_Days_3$TL, main = "Q-Q plot of Air Temperature")
+qqnorm(Six_Days_3$TD, main = "Q-Q plot of Dew Point Temperature")
+
+qqnorm(Six_Days_3$Unix_Time)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
