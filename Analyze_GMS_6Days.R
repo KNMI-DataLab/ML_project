@@ -121,7 +121,7 @@ qqnorm(Six_Days_3$TEMP, main = "Q-Q plot of Road Temperature")
 qqnorm(Six_Days_3$TL, main = "Q-Q plot of Air Temperature")
 qqnorm(Six_Days_3$TD, main = "Q-Q plot of Dew Point Temperature")
 
-qqnorm(Six_Days_3$Unix_Time)
+qqnorm(Six_Days_3$Unix_Time) 
 
 
 
