@@ -121,7 +121,143 @@ qqnorm(Six_Days_3$TEMP, main = "Q-Q plot of Road Temperature")
 qqnorm(Six_Days_3$TL, main = "Q-Q plot of Air Temperature")
 qqnorm(Six_Days_3$TD, main = "Q-Q plot of Dew Point Temperature")
 
-qqnorm(Six_Days_3$Unix_Time) 
+qqnorm(Six_Days_3$Unix_Time, main = "Time distribution") 
+
+# Test the skewness of TEMP data
+library(e1071)
+for (i in seq_along(Dates)){
+  print(Dates[i])
+  Subset_Day <- Six_Days_3[Six_Days_3$Date == Dates[i], ]
+  print(skewness(Subset_Day$TEMP))
+}
+
+# Test the kurtosis of the TEMP data
+for (i in seq_along(Dates)){
+  print(Dates[i])
+  Subset_Day <- Six_Days_3[Six_Days_3$Date == Dates[i], ]
+  print(kurtosis(Subset_Day$TEMP))
+}
+
+# Histogram of TL and TD
+hist(Six_Days_3$TL)
+hist(Six_Days_3$TD)
+
+# Plot a histogram, boxplots (split up by quality ), and boxplots of the TD and TL split up by LOCATION
+# TL
+for (i in seq_along(Dates)){
+  print(i)
+  print(Dates[i])
+  
+  Subset_Day <- Six_Days_3[Six_Days_3$Date == Dates[i], ]
+  Hist_plot <- ggplot(data = Subset_Day, aes(x = TL)) + geom_histogram(color="black", fill = "lightblue") +
+    ggtitle(paste("Date:", Dates[i]))
+  Box_plot <- ggplot(data = Subset_Day, aes(x = Date, y = TL,  fill = QUALITY))+ 
+    geom_boxplot()
+  Big_box_plot <- ggplot(data = Subset_Day, aes(x = Date, y = TL,  fill = LOCATION))+ 
+    geom_boxplot() + guides(fill=FALSE)
+  
+  multiplot(Hist_plot, Box_plot, Big_box_plot, cols = 1)
+}
+
+for (i in seq_along(Dates)){
+  print(i)
+  print(Dates[i])
+  
+  Subset_Day <- Six_Days_3[Six_Days_3$Date == Dates[i], ]
+  Hist_plot <- ggplot(data = Subset_Day, aes(x = TD)) + geom_histogram(color="black", fill = "lightblue") +
+    ggtitle(paste("Date:", Dates[i]))
+  Box_plot <- ggplot(data = Subset_Day, aes(x = Date, y = TD,  fill = QUALITY))+ 
+    geom_boxplot()
+  Big_box_plot <- ggplot(data = Subset_Day, aes(x = Date, y = TD,  fill = LOCATION))+ 
+    geom_boxplot() + guides(fill=FALSE)
+  
+  multiplot(Hist_plot, Box_plot, Big_box_plot, cols = 1)
+}
+
+
+
+# Test the skewness and kurtosis of the TL and TD data 
+# skewness TL, all days
+skewness(Six_Days_3$TL, na.rm = TRUE)
+
+# skewness TL, per day
+for (i in seq_along(Dates)){
+  print(Dates[i])
+  Subset_Day <- Six_Days_3[Six_Days_3$Date == Dates[i], ]
+  print(skewness(Subset_Day$TL, na.rm = TRUE))
+}
+
+# skewness TD, all days
+skewness(Six_Days_3$TL, na.rm = TRUE)
+
+# skewness TD, per day
+for (i in seq_along(Dates)){
+  print(Dates[i])
+  Subset_Day <- Six_Days_3[Six_Days_3$Date == Dates[i], ]
+  print(skewness(Subset_Day$TD, na.rm = TRUE))
+}
+
+# kurtosis TL, all days
+kurtosis(Six_Days_3$TL, na.rm = TRUE)
+
+# kurtosis TL, per day
+for (i in seq_along(Dates)){
+  print(Dates[i])
+  Subset_Day <- Six_Days_3[Six_Days_3$Date == Dates[i], ]
+  print(kurtosis(Subset_Day$TL, na.rm = TRUE))
+}
+
+# kurtosis TD, all days
+kurtosis(Six_Days_3$TL, na.rm = TRUE)
+
+# kurtosis TD, per day
+for (i in seq_along(Dates)){
+  print(Dates[i])
+  Subset_Day <- Six_Days_3[Six_Days_3$Date == Dates[i], ]
+  print(kurtosis(Subset_Day$TD, na.rm = TRUE))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
