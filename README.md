@@ -40,6 +40,13 @@ Part 6 contains the multilayer perceptron. Code follows standard setup except fo
 Part 7 contains the Radial Basis Function Neural Network. This model again does not seem to work within the train environment, but it does work from the rbf package. Code follows standard structure. 
 
 Part 8 contains the decision tree.  
+The decision tree script contains two different plotting routines: a basic and a 'fancy'plotting routine. The latter routine is taken from the rattle package. Next, several types of variable importance plots are made. Finally, values are predicted and plotted. 
+
+Part 9 contains teh random forest. 
+This code conatins a level plot indictaing how many trees need to be built to reduce the error. Next, several types of importance plots are tested. Partial plots are also made (within a loop) to test the effect of a certain predictor on the predicted target outcome. Then, again, predictions are made and plotted. 
+
+Part 10, the final part of the script, contains the code for the Support Vector Machine. This code follows the standard setup. 
+
 
 
 Next, a neural network model 
