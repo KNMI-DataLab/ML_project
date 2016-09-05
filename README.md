@@ -21,9 +21,19 @@ The first part of the script builds the test and train data sets. First, the 10 
 The second part of the script tests how centering and scaling with the preProcess function works. To test the effect of centering and scaling histograms are plotted before and after running the preProcess function. The preProcess function is tested on 2 sets of data and finally applied to the train and test data. 
 
 In the third part of the script the test and train data are split into input (: predictors) and output (: target variables). 
+There are two types of input. The first (Train/Test_X_1) does not include the air and dew point temperature, the second (Train/Test_X_2) does. 
+
+The next sections of the script handle the actual model building. All model building scripts follow the pattern: 
+* train model
+* get RMSE/summary/plots of trained model
+* predict based on trained model and test set
+* plot predicted versus measured values 
 
 
+The fourth part of the script is where the first model is built! This model is built based on a linear regression algorithm. We use the caret package for building the model, even though you can also use basic R. There are two formats to train a model with the caret package. The first is by means of a formula and a data set. The second is by means of specifying an x (:predictors) and y (: target variable). We chose the latter method. After the model is built the summary and error measures are analysed. Next, we use the test set and the trained model to predict values. To test how well the model predicts we plot the predicted values versus the measured values. This is done with a caret plotting routine and with ggplot. We use the function extractPrediction to make the model predictions. You can also use the fucntion predict, but extractPrediction handily puts the results in a data frame and if necessary this fucntion can handle multiple models at once. 
 
+
+Next, a neural network model 
 ------ Scripts for building/analyzing the datasets for the 2nd and 3rd round of modelling -----------------------------------------
 Met_conditions.Rmd - In this script the daily values of the meteorological measurements at the Bilt are analysed. Several columns are added to the data: Freezing/Stralingsdag/Precip/WindD columns. Based on the data analysis + columns several days are selected as input for the 3rd round of ML modelling. 
 
