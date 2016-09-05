@@ -8,15 +8,11 @@ Below a short description of the scripts is provided.
 
 The README description has been divided into several parts.
 
-First, the scripts for the building and analysis of the Environmental data set are described.
-
-Secondly, the script for building the 5/10 minute subsets for the first round of model building are decsribed.
-
-Thirdly, the script for building the 'miniature' models is described. 
-
-Next, the scripts for building and analyzing the datasets needed for the 2nd and 3rd rounds of model building are explained. 
-
-Finally, the scripts used for testing relevant fuctions are described. These scripts have been used to test functions which may be usefull for the project, but which are complicated. The working of the functions is analyzed by (for example) testing the distributions of TW data before and after applying one of the functions.  
+*First, the scripts for the building and analysis of the Environmental data set are described.
+*Secondly, the script for building the 5/10 minute subsets for the first round of model building are decsribed.
+*Thirdly, the script for building the 'miniature' models is described. 
+*Next, the scripts for building and analyzing the datasets needed for the 2nd and 3rd rounds of model building are explained. 
+*Finally, the scripts used for testing relevant fuctions are described. These scripts have been used to test functions which may be usefull for the project, but which are complicated. The working of the functions is analyzed by (for example) testing the distributions of TW data before and after applying one of the functions.  
 
 Relevant abbreviations:
 TW = Road Temperature
