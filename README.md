@@ -82,3 +82,4 @@ Test_merge_join.R - Here we test wether the merge or the join function (dplyr pa
 
 Test_Time_Slice.R - In this script the time slice function from the caret package is tested. This script was copy pasted from a Stackoverflow answer. (Stackoverflow post: http://stackoverflow.com/questions/24758218/time-series-data-spliting-and-model-evaluation)
 
+Test_CreateDataPartition.R - This script is used to test how the create data partition script from the caret package works. First, the function is used to build train and test sets. Next, histograms are plotted (side by side) of the original TW data and of the train/test TW data. These histograms show that all the data sets hav approximately the same distribution. Next, the distributions of other variables are checked in the same manner. This is done within a for loop. Finally, the relative proportion of sensors per set is tested by means of a prop.table.    
