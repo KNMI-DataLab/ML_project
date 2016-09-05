@@ -8,12 +8,23 @@ Below a short description of the scripts is provided.
 
 TW = Road Temperature
 
------- Scripts for building/analyzing the Environmental dataset -----------------------------------------------------------------------
+------ Scripts for building/analyzing the Environmental dataset --------------------------------------------------------------------
 Environmental_Data.Rmd - Here the environmental dataset is built. In this script several seperate datasets with environmental data are read in. This data is then combined by station number and LAT/LON. We use the Rijksdriehoek LAT/LON and drop the 'normal' LAT/LON. Measurements from stations which have taken no measurements since 2014 and RWS test stations are removed from the dataset. The category 'Moerig op Zand' occurs very sparsely and is therefore added to the category "Zand". The CODE column is split into multiple columns (One for each number in the CODE line). Next, dummy variables are created for the categorical data. These dummy variables are stored as integers instead of factors, because neural networks can not handle factors as data input. Finally, the dataframe is stored. 
 
 Analyze_Env.R - In this script the environmental dataset is analyzed. The distribution of the LAT/LON/ALT data is analyzed with histograms and a shapiro test. The skewness and kurtosis are also analyzed. Based on these analyses we can determine that ALT is definately positively skewed and leptokurtic.   
 
------- Scripts for building/analyzing the datasets for the 2nd and 3rd round of modelling --------------------------------------------
+------ Script for the first round of model development ---------------------------------------------------------------------------
+miniML.Rmd - This script contains the code to build 'miniature models'. We call these models mini models because they are built on only 5 minutes of data. This small amount of training data is not enough to build a reliable model for predicting TW. However, it is useful to test the code you use to build the different models. 
+
+The first part of the script builds the test and train data sets. First, the 10 minute GMS subset is read in. Next, all data which is not labeled as 'valid' is removed. Now that we have only 'valid' data remaining we merge the GMS data with the environmental data. This dataset is then split into train and test datasets. Each train/test set contains 5 minutes of data. The LOC/SENSOR/TIMESTAMP columns are dropped from the test and train sets because these columns can not be used as input by most ML algorithms. 
+
+The second part of the script tests how centering and scaling with the preProcess function works. To test the effect of centering and scaling histograms are plotted before and after running the preProcess function. The preProcess function is tested on 2 sets of data and finally applied to the train and test data. 
+
+In the third part of the script the test and train data are split into input (: predictors) and output (: target variables). 
+
+
+
+------ Scripts for building/analyzing the datasets for the 2nd and 3rd round of modelling -----------------------------------------
 Met_conditions.Rmd - In this script the daily values of the meteorological measurements at the Bilt are analysed. Several columns are added to the data: Freezing/Stralingsdag/Precip/WindD columns. Based on the data analysis + columns several days are selected as input for the 3rd round of ML modelling. 
 
 Analyze_Days.R - In this script the hourly data of the Bilt station is analyzed. Plots of the diurnal temperature and dew point temperature are made for each of the days that were selected for the 3rd set of model runs. Ice formation/Snowfall/Cloud cover and rainfall are also investigated. A time interval of 6 hours is selected for the 2nd set of model runs.  
