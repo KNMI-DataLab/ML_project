@@ -6,6 +6,14 @@ Several machine learning algorithms are tested: three types of neural networks, 
 
 Below a short description of the scripts is provided. 
 
+The README description has been divided into several parts.
+First, the scripts for the building and analysis of the Environmental data set are described.
+Secondly, the script for building the 5/10 minute subsets for the first round of model building are decsribed.
+Thirdly, the script for building the 'miniature' models is described. 
+Next, the scripts for building and analyzing the datasets needed for the 2nd and 3rd rounds of model building are explained. 
+Finally, the scripts used for testing relevant fuctions are described. These scripts have been used to test functions which may be usefull for the project, but which are complicated. The working of the functions is analyzed by (for example) testing the distributions of TW data before and after applying one of the functions.  
+
+Relevant abbreviations:
 TW = Road Temperature
 ML = Machine Learning
 
@@ -14,7 +22,7 @@ Environmental_Data.Rmd - Here the environmental dataset is built. In this script
 
 Analyze_Env.R - In this script the environmental dataset is analyzed. The distribution of the LAT/LON/ALT data is analyzed with histograms and a shapiro test. The skewness and kurtosis are also analyzed. Based on these analyses we can determine that ALT is definately positively skewed and leptokurtic.   
 
------- Scripts for building/analyzing 5 minute GMS subset ------------------------------------------------------------------------
+------ Scripts for building/analyzing 5/10 minute GMS subset ------------------------------------------------------------------------
 miniSubset.Rmd - This script can be used to build either a 5 minute or a 10 minute 'miniature' subset. This small subset is used in the first round of model building. 
 
 One day of data is read in and with the lubridate package a time interval is defined. This time interval is used to 'cut' a 10 minute slice of data from the one day GMS data set. Next, the subset is melted to the correct shape and merged with a filtered subset, for the same time interval. A new Time column is added with the Linux time (seconds passed since 1970). This is because the POSIXct TIMESTAMP column can not be used as input by any of the ML algorithms: It is not an accepted input format. 
