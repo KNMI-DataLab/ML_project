@@ -61,7 +61,6 @@ Part 10, the final part of the script, contains the code for the Support Vector 
 
 
 
-Next, a neural network model 
 ------ Scripts for building/analyzing the datasets for the 2nd and 3rd round of modelling -----------------------------------------
 Met_conditions.Rmd - In this script the daily values of the meteorological measurements at the Bilt are analysed. Several columns are added to the data: Freezing/Stralingsdag/Precip/WindD columns. Based on the data analysis + columns several days are selected as input for the 3rd round of ML modelling. 
 
