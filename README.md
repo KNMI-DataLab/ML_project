@@ -2,13 +2,18 @@
 
 This repository contains the scripts written for an internship project at the Dutch royal meteorological institure (In Dutch: Koninklijk Nederlands Meteorologisch Instituut, or KNMI) to predict road temperatures. Based on measurements of road temperature and meteorological/environmental variables a model is developed to predict road temperatures for all major roads in the Netherlands. To build the model(s) for predicting road temperature we make use of machine learning. An accurate road temperature model used in combination with weather prediction could be used to predict icy roads. Accurate prediction of icy roads allows for early spraying of salt on roads, preventing them from becoming slippery, and thus helping to prevent accidents. 
 
-Several machine learning algorithms are tested: three types of neural networks, a random forest and a decision tree, a simple multilinear regression and a support vactor machine with radial basis function kernel. 
+Several machine learning algorithms are tested: three types of neural networks, a random forest and a decision tree, a simple multilinear regression and a support vector machine with radial basis function kernel. 
 
 Below a short description of the scripts is provided. 
 
 TW = Road Temperature
 
------- Scripts for building/analyzing the datasets for the 2nd and 3rd round of modelling -------------------------------------
+------ Scripts for building/analyzing the Environmental dataset -----------------------------------------------------------------------
+Environmental_Data.Rmd - Here the environmental dataset is built. In this script several seperate datasets with environmental data are read in. This data is then combined by station number and LAT/LON. We use the Rijksdriehoek LAT/LON and drop the 'normal' LAT/LON. Measurements from stations which have taken no measurements since 2014 and RWS test stations are removed from the dataset. The category 'Moerig op Zand' occurs very sparsely and is therefore added to the category "Zand". The CODE column is split into multiple columns (One for each number in the CODE line). Next, dummy variables are created for the categorical data. These dummy variables are stored as integers instead of factors, because neural networks can not handle factors as data input. Finally, the dataframe is stored. 
+
+Analyze_Env.R - In this script the environmental dataset is analyzed. The distribution of the LAT/LON/ALT data is analyzed with histograms and a shapiro test. The skewness and kurtosis are also analyzed. Based on these analyses we can determine that ALT is definately positively skewed and leptokurtic.   
+
+------ Scripts for building/analyzing the datasets for the 2nd and 3rd round of modelling --------------------------------------------
 Met_conditions.Rmd - In this script the daily values of the meteorological measurements at the Bilt are analysed. Several columns are added to the data: Freezing/Stralingsdag/Precip/WindD columns. Based on the data analysis + columns several days are selected as input for the 3rd round of ML modelling. 
 
 Analyze_Days.R - In this script the hourly data of the Bilt station is analyzed. Plots of the diurnal temperature and dew point temperature are made for each of the days that were selected for the 3rd set of model runs. Ice formation/Snowfall/Cloud cover and rainfall are also investigated. A time interval of 6 hours is selected for the 2nd set of model runs.  
@@ -18,6 +23,9 @@ Select_Days.R - This is the script in which the GMS data for the 3rd model is pu
 Select_6h.R - This is the script in which the data for the selected 6 hours for the 2nd model building step is put into a dataframe with the right input format for the ML scripts. The data is merged with the filtered data so that a quality column is included which indicates wether data is "suspect" or "valid". 
 
 Analyze_GMS_6Days.R - This script contains code to analyze the distribution of road temperature (TW) data in the GMS data set. It includes a function to plot the diurnal temperature for each station, per sensor, per day. The script also contains code for a simple histogram of TW, boxplots of the suspect and valid data and boxplots of the temperature per station, per day. 
+
+Select_1.5h.R - In this script the test dataset for the 2nd round of model building is built. he data is merged with the filtered data so that a quality column is included which indicates wether data is "suspect" or "valid". 
+
 
 -------- Scripts for testing functions that are relevant to the project -------------------------------------------------------
 
