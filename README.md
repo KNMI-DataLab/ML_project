@@ -7,11 +7,23 @@ Several machine learning algorithms are tested: three types of neural networks, 
 Below a short description of the scripts is provided. 
 
 TW = Road Temperature
+ML = Machine Learning
 
 ------ Scripts for building/analyzing the Environmental dataset --------------------------------------------------------------------
 Environmental_Data.Rmd - Here the environmental dataset is built. In this script several seperate datasets with environmental data are read in. This data is then combined by station number and LAT/LON. We use the Rijksdriehoek LAT/LON and drop the 'normal' LAT/LON. Measurements from stations which have taken no measurements since 2014 and RWS test stations are removed from the dataset. The category 'Moerig op Zand' occurs very sparsely and is therefore added to the category "Zand". The CODE column is split into multiple columns (One for each number in the CODE line). Next, dummy variables are created for the categorical data. These dummy variables are stored as integers instead of factors, because neural networks can not handle factors as data input. Finally, the dataframe is stored. 
 
 Analyze_Env.R - In this script the environmental dataset is analyzed. The distribution of the LAT/LON/ALT data is analyzed with histograms and a shapiro test. The skewness and kurtosis are also analyzed. Based on these analyses we can determine that ALT is definately positively skewed and leptokurtic.   
+
+------ Scripts for building/analyzing 5 minute GMS subset ------------------------------------------------------------------------
+miniSubset.Rmd - This script can be used to build either a 5 minute or a 10 minute 'miniature' subset. This small subset is used in the first round of model building. 
+
+One day of data is read in and with the lubridate package a time interval is defined. This time interval is used to 'cut' a 10 minute slice of data from the one day GMS data set. Next, the subset is melted to the correct shape and merged with a filtered subset, for the same time interval. A new Time column is added with the Linux time (seconds passed since 1970). This is because the POSIXct TIMESTAMP column can not be used as input by any of the ML algorithms: It is not an accepted input format. 
+
+This script also contains some data analysis. First the amount of suspect data in TEMP, TL and TD is plotted. Next, it is tested how much of the original subset data was NA. This number is quite high because not all stations have the full 12 road temperature sensors. If a station does not have 12 sensors it will register NA for all sensors that are not in use. 
+
+Finally, the subset is saved as an Rdata file (which can quickly be loaded in with the load function) and as a .csv file. 
+
+
 
 ------ Script for the first round of model development ---------------------------------------------------------------------------
 miniML.Rmd - This script contains the code to build 'miniature models'. We call these models mini models because they are built on only 5 minutes of data. This small amount of training data is not enough to build a reliable model for predicting TW. However, it is useful to test the code you use to build the different models. 
