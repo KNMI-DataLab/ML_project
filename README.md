@@ -32,6 +32,15 @@ The next sections of the script handle the actual model building. All model buil
 
 The fourth part of the script is where the first model is built! This model is built based on a linear regression algorithm. We use the caret package for building the model, even though you can also use basic R. There are two formats to train a model with the caret package. The first is by means of a formula and a data set. The second is by means of specifying an x (:predictors) and y (: target variable). We chose the latter method. After the model is built the summary and error measures are analysed. Next, we use the test set and the trained model to predict values. To test how well the model predicts we plot the predicted values versus the measured values. This is done with a caret plotting routine and with ggplot. We use the function extractPrediction to make the model predictions. You can also use the fucntion predict, but extractPrediction handily puts the results in a data frame and if necessary this fucntion can handle multiple models at once. 
 
+Parts 5-8 contain the neural network models.
+Part 5 builds a model with the neuralnet algorithm. This script still contains some bugs. Sometimes the model works with both types of input, sometimes it does not. Sometimes the model can handle multiple layers, sometimes it can not. Perhaps this has something to do with the memory running full. Sometimes the plotting routine can plot and save the neural network structure, sometimes it can not.  This latter problem seems to be a bug. (https://github.com/IRkernel/IRkernel/issues/337) The neuralnet function also does not seem to work within the train environment from caret. If we use the neuralnet funtion straight from the neuralnet package it does work. Code follows standard structure. 
+
+Part 6 contains the multilayer perceptron. Code follows standard setup except for extra code for the plotting routine and an iterative error plot. 
+
+Part 7 contains the Radial Basis Function Neural Network. This model again does not seem to work within the train environment, but it does work from the rbf package. Code follows standard structure. 
+
+Part 8 contains the decision tree.  
+
 
 Next, a neural network model 
 ------ Scripts for building/analyzing the datasets for the 2nd and 3rd round of modelling -----------------------------------------
