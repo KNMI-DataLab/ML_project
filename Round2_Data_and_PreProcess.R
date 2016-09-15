@@ -85,17 +85,34 @@ for (i in seq_along(Cont_vars)){
   print(summary(Predictors_Test[ , i]))
 }
 
-summary(Target_Test)
+summary(Target_Test) 
 
 # It would be usefull to subtract the nr of seconds since 1970 at the start of the GMS data from the Unix_Time column
-# To get this use the following site: http://www.unixtimestamp.com/ 
 # TO DO: CHECK DATE OF THE START OF GMS MEASUREMENTS!!!!!!!
+# According to Met_conditions script: 2009-03-01
+
+sStart <- as.numeric(as.POSIXct("2009-03-01 00:00:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT"))
 
 
 
 
+# Add 10m to ALT for train and test data
+Predictors_Train$ALT <- Predictors_Train$ALT + 10
+Predictors_Test$ALT <- Predictors_Test$ALT + 10
 
+# Convert TD, TL in Predictors to Kelvin
 
+# For train
+Predictors_Train$TL <- Predictors_Train$TL + 273.15
+Predictors_Train$TD <- Predictors_Train$TL + 273.15
+
+# For test
+Predictors_Test$TL <- Predictors_Test$TL + 273.15
+Predictors_Test$TD <- Predictors_Test$TD + 273.15
+
+# Convert target variables to Kelvin
+Target_Train <- Target_Train + 273.15
+Target_Test <- Target_Test + 273.15
 
 
 
