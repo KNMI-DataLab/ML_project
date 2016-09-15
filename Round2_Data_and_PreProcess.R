@@ -8,6 +8,10 @@
 # Empty environment
 rm(list=ls())
 
+# Install packages
+#install.packages("corrplot")
+
+
 
 # Read in the environmental dataset
 load("F:/KNMI/MLProject/Env_Data.Rda")
@@ -116,17 +120,53 @@ Target_Test <- Target_Test + 273.15
 
 
 
+# Data analysis before preProcessing --------------------------------------
+
+# Multicollinearity can slow down/stop some ML algorithms when building a model
+# To resolve any multicollinearity we later run a PCA 
+# Here we examine the correlation between predictors BEFORE a PCA is run
+# Ideally, you would like to make a scatterplot of how all the predictors are correlated as well as a correlation plot
+
+library(corrplot)
+
+# TRAIN
+
+# Build a correlation matrix of all predictors
+# To deal with the NA values in the TL and TD data set the use parameter to "complete.obs"
+# TO DO: CHECK WHERE NA VALUES ORIGINATE, IS THIS CORRECT?
+
+# The dummy vars show high correlations: CHECK FOR DUMMY VARIABLE TRAP
+corTrain <- cor(Predictors_Train, use = "complete.obs")
+corrplot(corTrain, method = "circle")
+
+# Build a correlation matrix without the dummy vars
+# There are some interesting patterns:
+# TL and TD are perfectly correlated (cor = 1)
+# The air (and dew point) temperature are positively correlated with time (which is unsuprising as temperature steadily 
+# increases over the day because the sun is rising) and latitude
+# ALTitude is negatively correlated with air temperature and latitude
+# Lon and Lat are weakly positively correlated
+
+corTrain_2 <- cor(Predictors_Train[, 1:6], use = "complete.obs")
+corrplot(corTrain_2, method = "number")
 
 
+# TEST
+# Build a correlation matrix of all predictors
+corTest <- cor(Predictors_Test, use = "complete.obs")
+corrplot(corTest, method = "circle")
 
+# Build a correlation matrix without the dummy vars
+# The test set shows some different patterns compared to the train set:
+# TL and TD are almost uncorrelated
+# TD and LAT are NEGATIVELY correlated whereas
+# TL and LAT are weakly positively correlated
+# The relationship between TL and time remains approximately the same, because this time slice is also taken from the same
+# moment of the day
 
-
-
-
-
-
-
-
+# DOES THIS MEAN THAT WE HAVE TO CHOOSE ANOTHER TEST SET?
+corTest_2 <- cor(Predictors_Test[ , 1:6], use = "complete.obs")
+corrplot(corTest_2, method = "number")
 
 
 
