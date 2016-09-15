@@ -36,13 +36,13 @@ Data_6h <- Data_6h[ ,-(1:3)]
 Data_6h <- Data_6h[ ,-3]
 Predictors_Train <- Data_6h
 
-
+ 
 
 # Build the test set  -----------------------------------------------------
 
-# Read in the 1.5h GMS dataset and remove al data which is not labeled as 'valid' 
+# Read in the 1.5h GMS dataset and remove all data which is not labeled as 'valid' 
 load("F:/KNMI/MLProject/GMS_1.5h.Rda")
-GMS_1.5h <- GMS_1.5h[GMS_1.5h$QUALITY == "valid"]
+GMS_1.5h <- GMS_1.5h[GMS_1.5h$QUALITY == "valid", ]
 GMS_1.5h <- GMS_1.5h[ ,-7]
 
 Data_1.5h <-merge(GMS_1.5h,Env_Data_4,by.x=c("LOCATION","SENSOR"),by.y=c("MISD","SENSOR"))
@@ -60,12 +60,62 @@ Predictors_Test <- Data_1.5h
 
 
 # Change data format ------------------------------------------------------
-# Below we run some pre-processing code
-# This code centers, scales, resolves skewness with BoxCox and does a PCA
-# However, as BoxCox cannot be applied to negative/0 values it is necessary to first alter the data formats
+# To prepare the train/test data for the ML algorithms we need to run some pre-processing code
+# This code centers, scales, resolves skewness with BoxCox and performs a PCA
+# However, as BoxCox cannot be applied to negative/0 values it is necessary to first alter the data formats so that the data
+# contains no negative/0 values
 # A simple trick is to put temperatures in K and heighten the ALT to give instead of m, m + 10
 
-# First, we test how the variables are distributed
+# First, we test how the variables are distributed in the train set
+# Make a vector containing all continuous predictors (: all predictors that are not dummies)
+Cont_vars <- colnames(Predictors_Train)[1:6]
+
+# Get a summary for each variable in the train data
+for (i in seq_along(Cont_vars)){
+  print(Cont_vars[i])
+  print(summary(Predictors_Train[ , i]))
+}
+
+summary(Target_Train)
+
+
+# Get a summary for each variable in the test data
+for (i in seq_along(Cont_vars)){
+  print(Cont_vars[i])
+  print(summary(Predictors_Test[ , i]))
+}
+
+summary(Target_Test)
+
+# It would be usefull to subtract the nr of seconds since 1970 at the start of the GMS data from the Unix_Time column
+# To get this use the following site: http://www.unixtimestamp.com/ 
+# TO DO: CHECK DATE OF THE START OF GMS MEASUREMENTS!!!!!!!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
