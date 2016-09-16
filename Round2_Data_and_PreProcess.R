@@ -95,7 +95,8 @@ summary(Target_Test)
 # According to Met_conditions script: 2009-03-01
 
 sStart <- as.numeric(as.POSIXct("2009-03-01 00:00:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT"))
-
+Predictors_Train$Unix_Time <- (Predictors_Train$Unix_Time - sStart)
+Predictors_Test$Unix_Time <- (Predictors_Test$Unix_Time - sStart)
 
 
 
@@ -201,9 +202,27 @@ Predictors_Train[, 1:6] <- predict(xTrans, Predictors_Train[ ,1:6])
 plot(Predictors_Train$LON, Predictors_Train$ALT)
 
 # However, somehow the time column has been changed to 0.5?????
+# Maybe this problem occurs because the change in time is small compared to the size of the time variable?
+# This may make Unix_Time seem like a constant, when it is not actually a constant.
+# How to fix this?
 for (i in seq_along(Cont_vars)){
   
   plot(Predictors_Train[ , i], ylab = Cont_vars[i])
+}
+
+# Test patterns in the test set
+for (i in seq_along(Cont_vars)){
+    plot(Predictors_Test[ , i], ylab = Cont_vars[i])
+}
+
+plot(Predictors_Test$LON, Predictors_Test$ALT)
+
+# Apply the transform to the test set
+Predictors_Test[, 1:6] <- predict(xTrans, Predictors_Test[ ,1:6])
+
+# Effect of the transform
+for (i in seq_along(Cont_vars)){
+  plot(Predictors_Test[ , i], ylab = Cont_vars[i])
 }
 
 
