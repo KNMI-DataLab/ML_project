@@ -9,9 +9,8 @@
 rm(list=ls())
 
 # Install packages
-#install.packages("corrplot")
-
-
+# install.packages("corrplot")
+# install.packages("GGally")
 
 # Read in the environmental dataset
 load("F:/KNMI/MLProject/Env_Data.Rda")
@@ -168,8 +167,10 @@ corrplot(corTest, method = "circle")
 corTest_2 <- cor(Predictors_Test[ , 1:6], use = "complete.obs")
 corrplot(corTest_2, method = "number")
 
-
-
+# These scatterplots take a long time to run (between 5-10 min) and are therefore uncommented. Plots have been saved
+library(GGally)
+# ggpairs(data = Predictors_Train, columns = c("TL", "TD", "Unix_Time", "LAT", "LON", "ALT"))
+# pairs(~ TL + TD + Unix_Time + LAT + LON + ALT, data = Predictors_Train)
 
 
 
@@ -177,6 +178,7 @@ corrplot(corTest_2, method = "number")
 
 
 # Preprocessing (Centering, Scaling, Box-Cox, PCA) ------------------------
+# First we make some scatterplots to view the relationships between the predictors  
 
 
 library(caret)
