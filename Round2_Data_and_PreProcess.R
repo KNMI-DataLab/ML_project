@@ -167,7 +167,8 @@ corrplot(corTest, method = "circle")
 corTest_2 <- cor(Predictors_Test[ , 1:6], use = "complete.obs")
 corrplot(corTest_2, method = "number")
 
-# These scatterplots take a long time to run (between 5-10 min) and are therefore uncommented. Plots have been saved
+# These scatterplots take a long time to run (between 5-10 min) and are therefore uncommented. Plots have been saved.
+# You cannot run for all variables because R will crash hopelessly and delete all the code you wrote.
 library(GGally)
 # ggpairs(data = Predictors_Train, columns = c("TL", "TD", "Unix_Time", "LAT", "LON", "ALT"))
 # pairs(~ TL + TD + Unix_Time + LAT + LON + ALT, data = Predictors_Train)
@@ -178,14 +179,32 @@ library(GGally)
 
 
 # Preprocessing (Centering, Scaling, Box-Cox, PCA) ------------------------
-# First we make some scatterplots to view the relationships between the predictors  
+# First we make some scatterplots to view the relationships between the predictors, focussing especially on ALT
+Cont_vars <- colnames(Predictors_Train)[1:6]
 
+# Get a summary for each variable in the train data
+for (i in seq_along(Cont_vars)){
+  
+  plot(Predictors_Train[ , i], ylab = Cont_vars[i])
+}
 
+plot(Predictors_Train$LON, Predictors_Train$ALT)
+
+# Next we perform the BoxCox
 library(caret)
-xTrans <- preProcess(Predictors_Train[, 1:6], method = c("expoTrans","center","scale"),
+xTrans <- preProcess(Predictors_Train[, 1:6], method = c("BoxCox"),
                      na.remove = TRUE)
 
 Predictors_Train[, 1:6] <- predict(xTrans, Predictors_Train[ ,1:6])
+
+# The BoxCox worked!!!!
+plot(Predictors_Train$LON, Predictors_Train$ALT)
+
+# However, somehow the time column has been changed to 0.5?????
+for (i in seq_along(Cont_vars)){
+  
+  plot(Predictors_Train[ , i], ylab = Cont_vars[i])
+}
 
 
 # Some analysis -----------------------------------------------------------
