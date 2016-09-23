@@ -11,6 +11,7 @@ rm(list=ls())
 # Install packages
 # install.packages("corrplot")
 # install.packages("GGally")
+# install.packages("lubridate")
 
 # Read in the environmental dataset
 load("F:/KNMI/MLProject/Env_Data.Rda")
@@ -33,10 +34,34 @@ Data_6h <-merge(GMS_6h,Env_Data_4,by.x=c("LOCATION","SENSOR"),by.y=c("MISD","SEN
 # Output
 Target_Train <- Data_6h$TEMP
 
+
+# We need to add a DOY column and a hour of day column to train and remove Unix_Time
+# This should be done in the Select_6h.R file
+# We cannot perform a BoxCox transform if we do not remove Unix_Time and add a HOD ("Hour of Day") column
+# HOWEVER for a time slice of 6h we do not need to add a DOY column, because this would be a constant value
+# If you do wish to add such a column, you could use the following code:
+# Data_6h$DOY <-  as.numeric(strftime(Data_6h$TIMESTAMP, format = "%j"))
+library(lubridate)
+
+Data_6h$HOD <- hour(Data_6h$TIMESTAMP) + minute(Data_6h$TIMESTAMP)/60
+Data_6h <- Data_6h[ ,-7]
+
 # Input 
 # Drop LOCATION/SENSOR/TIMESTAMP en TEMP
 Data_6h <- Data_6h[ ,-(1:3)]
 Data_6h <- Data_6h[ ,-3]
+
+# Place the HOD column at the front of the data 
+# We can build a simple function for this:
+
+movetofirst <- function(data, move) {
+  print(names(data))
+  data[c(move, setdiff(names(data), move))]
+}
+# Use the function to place the HOD column at the front of the data 
+Data_6h <- movetofirst(Data_6h, c("HOD"))
+
+# Place all predictors in one data frame
 Predictors_Train <- Data_6h
 
  
@@ -54,11 +79,24 @@ Data_1.5h <-merge(GMS_1.5h,Env_Data_4,by.x=c("LOCATION","SENSOR"),by.y=c("MISD",
 # Output
 Target_Test <- Data_1.5h$TEMP
 
+# We need to add an hour of day column to train and remove Unix_Time
+# This should be done in the Select_6h.R file
+Data_1.5h$HOD <- hour(Data_1.5h$TIMESTAMP) + minute(Data_1.5h$TIMESTAMP)/60
+Data_1.5h <- Data_1.5h[ ,-7]
+
 # Input 
 # Drop LOCATION/SENSOR/TIMESTAMP en TEMP
 Data_1.5h <- Data_1.5h[ ,-(1:3)]
 Data_1.5h <- Data_1.5h[ ,-3]
+
+# Place the HOD column at the front of the data 
+Data_1.5h <- movetofirst(Data_1.5h, c("HOD"))
+
+# Place all predictors in one data frame
 Predictors_Test <- Data_1.5h
+
+
+
 
 
 
@@ -90,15 +128,18 @@ for (i in seq_along(Cont_vars)){
 
 summary(Target_Test) 
 
+######## 
+#This part of the code has been switched off
+
 # It would be usefull to subtract the nr of seconds since 1970 at the start of the GMS data from the Unix_Time column
 # TO DO: CHECK DATE OF THE START OF GMS MEASUREMENTS!!!!!!!
 # According to Met_conditions script: 2009-03-01
 
-sStart <- as.numeric(as.POSIXct("2009-03-01 00:00:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT"))
-Predictors_Train$Unix_Time <- (Predictors_Train$Unix_Time - sStart)
-Predictors_Test$Unix_Time <- (Predictors_Test$Unix_Time - sStart)
+#sStart <- as.numeric(as.POSIXct("2009-03-01 00:00:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT"))
+#Predictors_Train$Unix_Time <- (Predictors_Train$Unix_Time - sStart)
+#Predictors_Test$Unix_Time <- (Predictors_Test$Unix_Time - sStart)
 
-
+########
 
 # Add 10m to ALT for train and test data
 Predictors_Train$ALT <- Predictors_Train$ALT + 10
@@ -170,7 +211,7 @@ corrplot(corTest_2, method = "number")
 
 # These scatterplots take a long time to run (between 5-10 min) and are therefore uncommented. Plots have been saved.
 # You cannot run for all variables because R will crash hopelessly and delete all the code you wrote.
-library(GGally)
+# library(GGally)
 # ggpairs(data = Predictors_Train, columns = c("TL", "TD", "Unix_Time", "LAT", "LON", "ALT"))
 # pairs(~ TL + TD + Unix_Time + LAT + LON + ALT, data = Predictors_Train)
 
@@ -201,21 +242,12 @@ Predictors_Train[, 1:6] <- predict(xTrans, Predictors_Train[ ,1:6])
 # The BoxCox worked!!!!
 plot(Predictors_Train$LON, Predictors_Train$ALT)
 
-# However, somehow the time column has been changed to 0.5?????
-# Maybe this problem occurs because the change in time is small compared to the size of the time variable?
-# This may make Unix_Time seem like a constant, when it is not actually a constant.
-# How to fix this?
+# Time also appears to have been transformed correctly
 for (i in seq_along(Cont_vars)){
   
   plot(Predictors_Train[ , i], ylab = Cont_vars[i])
 }
 
-# Test patterns in the test set
-for (i in seq_along(Cont_vars)){
-    plot(Predictors_Test[ , i], ylab = Cont_vars[i])
-}
-
-plot(Predictors_Test$LON, Predictors_Test$ALT)
 
 # Apply the transform to the test set
 Predictors_Test[, 1:6] <- predict(xTrans, Predictors_Test[ ,1:6])
