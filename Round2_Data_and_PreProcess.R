@@ -226,15 +226,17 @@ Cont_vars <- colnames(Predictors_Train)[1:6]
 
 # Get a summary for each variable in the train data
 for (i in seq_along(Cont_vars)){
-  
-  plot(Predictors_Train[ , i], ylab = Cont_vars[i])
+    plot(Predictors_Train[ , i], ylab = Cont_vars[i])
 }
 
 plot(Predictors_Train$LON, Predictors_Train$ALT)
 
-# Next we perform the BoxCox
+# Next we perform the BoxCox, centering, scaling and PCA and zv
+# method = "zv" identifies numeric predictor columns with a single value (i.e. having zero variance) 
+# and excludes them from further calculations. 
+# Preprocessing is done in the order in which the methods are listed 
 library(caret)
-xTrans <- preProcess(Predictors_Train[, 1:6], method = c("BoxCox"),
+xTrans <- preProcess(Predictors_Train[, 1:6], method = c("zv", "BoxCox", "center", "scale", "pca"),
                      na.remove = TRUE)
 
 Predictors_Train[, 1:6] <- predict(xTrans, Predictors_Train[ ,1:6])
@@ -244,8 +246,7 @@ plot(Predictors_Train$LON, Predictors_Train$ALT)
 
 # Time also appears to have been transformed correctly
 for (i in seq_along(Cont_vars)){
-  
-  plot(Predictors_Train[ , i], ylab = Cont_vars[i])
+    plot(Predictors_Train[ , i], ylab = Cont_vars[i])
 }
 
 
