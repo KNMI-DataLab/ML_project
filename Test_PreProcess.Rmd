@@ -1,0 +1,99 @@
+---
+title: "Testing the preProcess function"
+author: "E Kleingeld"
+output: html_document
+---
+
+
+This script is used to test how the preProcess function from the caret package transforms a set of predictors when you apply several different methods
+
+### Read in the predictors
+
+First we read in a set of predictors 
+```{r}
+# Empty environment
+rm(list=ls())
+
+# Read in the predictors
+load("C:/Users/Eva/Documents/Stage/ML_project/Predictors_Test_6h.Rda")
+
+
+```
+This is what the data looks like: 
+
+```{r echo=FALSE}
+head(Predictors_Test)
+``` 
+
+
+### Analyse data before applying the preProcess function 
+
+First, plot the correlation between all of the continuous valriables:
+```{r}
+library(corrplot)
+
+corTest <- cor(Predictors_Test[, 1:6], use = "complete.obs")
+corrplot(corTest, method = "number")
+
+```
+
+Next, plot the raw data
+
+```{r} 
+Cont_vars <- colnames(Predictors_Test)[1:6]
+
+# Get a summary for each variable in the train data
+for (i in seq_along(Cont_vars)){
+    plot(Predictors_Test[ , i], ylab = Cont_vars[i])
+}
+
+````
+
+### Test removal of zero variance and BoxCox
+
+Below we apply the preProcess function so that all zero variance predictors are removed and so that a BoxCox transform is applied. The BoxCox transform should unskew the data. This is necessary because a PCA fails when you apply it on skewed data. The most skewed variable is altitude. 
+
+After transforming with BoxCox, altitude is no longer skewed. What is surprising is that TL and TD are not transformed in the same way: TL becomes very small whilst TD becomes very large. ** why does this happen? ** 
+
+```{r}
+library(caret)
+xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox"),
+                     na.remove = TRUE)
+
+Predictors_BoxCox <- predict(xTrans, Predictors_Test[ ,1:6])
+
+# Plot each of the BoxCox transformed predictors
+Cont_vars <- colnames(Predictors_BoxCox)
+
+for (i in seq_along(Cont_vars)){
+    plot(Predictors_BoxCox[ , i], ylab = Cont_vars[i])
+}
+
+# Test the correlations between the BoxCox transformed predictors
+corBoxCox <- cor(Predictors_BoxCox, use = "complete.obs")
+corrplot(corBoxCox, method = "number")
+
+```
+### Test removal of zero variance and BoxCox + centering and scaling
+
+```{r}
+xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox",  "center", "scale"),
+                     na.remove = TRUE)
+
+Predictors_centerScale <- predict(xTrans, Predictors_Test[ ,1:6])
+
+# Plot each of the transformed variables
+Cont_vars <- colnames(Predictors_centerScale)
+
+for (i in seq_along(Cont_vars)){
+    plot(Predictors_centerScale[ , i], ylab = Cont_vars[i])
+}
+# Test the correlations between the BoxCox + centered/scaled transformed predictors
+corBoxCox_CS <- cor(Predictors_centerScale, use = "complete.obs")
+corrplot(corBoxCox_CS, method = "number")
+```
+
+
+
+
+
