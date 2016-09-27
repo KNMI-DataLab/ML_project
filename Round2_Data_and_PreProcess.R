@@ -64,7 +64,7 @@ Data_6h <- movetofirst(Data_6h, c("HOD"))
 # Place all predictors in one data frame
 Predictors_Train <- Data_6h
 
- 
+
 
 # Build the test set  -----------------------------------------------------
 
@@ -159,7 +159,9 @@ Predictors_Test$TD <- Predictors_Test$TD + 273.15
 Target_Train <- Target_Train + 273.15
 Target_Test <- Target_Test + 273.15
 
-
+# Save these sets of predictors 
+save(Predictors_Train, file = "Predictors_Train_6h.Rda")
+save(Predictors_Test, file = "Predictors_Test_6h.Rda")
 
 # Data analysis before preProcessing --------------------------------------
 
