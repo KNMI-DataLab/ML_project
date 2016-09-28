@@ -55,6 +55,8 @@ Below we apply the preProcess function so that all zero variance predictors are 
 
 After transforming with BoxCox, altitude is no longer skewed. What is surprising is that TL and TD are not transformed in the same way: TL becomes very small whilst TD becomes very large. ** why does this happen? ** 
 
+After the BoxCox transform the correlations between the predictors is identical to that before the transform. 
+
 ```{r}
 library(caret)
 xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox"),
@@ -74,7 +76,16 @@ corBoxCox <- cor(Predictors_BoxCox, use = "complete.obs")
 corrplot(corBoxCox, method = "number")
 
 ```
+
 ### Test removal of zero variance and BoxCox + centering and scaling
+When we center the data the mean of the predictor's data is subtracted from the predictor values. 
+When we scale the data the predictor values are divided by the standard deviation.
+
+When you center and scale predictors the predictor values vary over a smaller range. For some ML algorithms, such as neural networks or support vector machines, this is especially useful because they will run faster on scaled/centered data. 
+
+
+After the BoxCox transform and centering/scaling the correlations between the predictors is identical to that before the transform. 
+
 
 ```{r}
 xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox",  "center", "scale"),
@@ -93,7 +104,23 @@ corBoxCox_CS <- cor(Predictors_centerScale, use = "complete.obs")
 corrplot(corBoxCox_CS, method = "number")
 ```
 
+### Test removal of zero variance and BoxCox + centering and scaling + PCA
+```{r}
+xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox",  "center", "scale", "pca"),
+                     na.remove = TRUE)
 
+Predictors_PCA <- predict(xTrans, Predictors_Test[ ,1:6])
+
+# Plot each of the transformed variables
+Cont_vars <- colnames(Predictors_PCA)
+
+for (i in seq_along(Cont_vars)){
+    plot(Predictors_PCA[ , i], ylab = Cont_vars[i])
+}
+# Test the correlations between the BoxCox + centered/scaled transformed predictors
+corBoxCox_CS_PCA <- cor(Predictors_PCA, use = "complete.obs")
+corrplot(corBoxCox_CS_PCA, method = "number")
+```
 
 
 
