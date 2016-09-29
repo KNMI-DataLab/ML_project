@@ -125,7 +125,37 @@ for (i in seq_along(Cont_vars)){
     PCA_transformed_point[[i]] <- ggplot(data.frame(x= seq_along(Predictors_PCA[ , i]), y = Predictors_PCA[ ,i]), aes(x, y)) + geom_point()+ ylab(Cont_vars[i])
     print(PCA_transformed_point[[i]])
     
-    }
+}
+
+# Custom function to plot the distribution of the predictors as a histogram
+Plot_histograms <- function(The_Data){
+  
+  List_hist <- list()
+  Cont_vars <- colnames(The_Data)
+  
+  for (i in seq_along(Cont_vars)){
+    List_hist[[i]] <- ggplot(data.frame(x=The_Data[ , i]), aes(x))+ geom_histogram()+ ylab(Cont_vars[i])
+  }
+    return(List_hist)
+}
+
+# Custom function to plot the distribution of the predictors as a point plot with y = predictor and x = index number
+Plot_Points <- function(The_Data){
+  
+  List_point <- list()
+  Cont_vars <- colnames(The_Data)
+  
+  for (i in seq_along(Cont_vars)){
+    List_point[[i]] <- ggplot(data.frame(x=seq_along(The_Data[ , i]), y = The_Data[ , i]), aes(x, y))+ geom_point()+ ylab(Cont_vars[i])
+  }
+    return(List_point)
+}
+
+
+
+
+Testt <- Plot_Points(Predictors_PCA)
+
 
 # Test the correlations between the BoxCox + centered/scaled + PCA transformed predictors
 corBoxCox_CS_PCA <- cor(Predictors_PCA, use = "complete.obs")
