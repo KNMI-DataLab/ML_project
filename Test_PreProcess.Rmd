@@ -25,6 +25,43 @@ This is what the data looks like:
 head(Predictors_Test)
 ``` 
 
+Next, we build a few functions in advance of the analysis. These functions wil plot histogram/point plots of each of the predictors and save each plot in a list. 
+
+**IMPORTANT NOTE: The print statement in both functions is currently switched off. If you want to print the histograms/point plots of the distributions of the predictors after each transformation: switch it on. This will mean that this file takes longer to render (but not much longer)**
+
+
+```{r}
+library(ggplot2)
+
+# Custom function to plot the distribution of the predictors as a histogram
+Plot_histograms <- function(The_Data){
+  
+  List_hist <- list()
+  Cont_vars <- colnames(The_Data)
+  
+  for (i in seq_along(Cont_vars)){
+    List_hist[[i]] <- ggplot(data.frame(x=The_Data[ , i]), aes(x))+ geom_histogram()+ xlab(Cont_vars[i])
+    #print(List_hist[[i]])
+  }
+    return(List_hist)
+}
+
+# Custom function to plot the distribution of the predictors as a point plot with y = predictor and x = index number
+Plot_Points <- function(The_Data){
+  
+  List_point <- list()
+  Cont_vars <- colnames(The_Data)
+  
+  for (i in seq_along(Cont_vars)){
+    List_point[[i]] <- ggplot(data.frame(x=seq_along(The_Data[ , i]), y = The_Data[ , i]), aes(x, y))+ geom_point()+ ylab(Cont_vars[i]) + xlab("row index")
+    #print(List_point[[i]])
+  }
+    return(List_point)
+}
+
+
+```
+
 
 ### Analyse data before applying the preProcess function 
 
@@ -40,12 +77,8 @@ corrplot(corTest, method = "number")
 Next, plot the raw data
 
 ```{r} 
-Cont_vars <- colnames(Predictors_Test)[1:6]
-
-# Get a summary for each variable in the train data
-for (i in seq_along(Cont_vars)){
-    plot(Predictors_Test[ , i], ylab = Cont_vars[i])
-}
+Predictors_Unchanged_hist <- Plot_histograms(Predictors_Test[1:6])
+Predictors_Unchanged_point <- Plot_Points(Predictors_Test[1:6])
 
 ````
 
@@ -65,11 +98,9 @@ xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox"),
 Predictors_BoxCox <- predict(xTrans, Predictors_Test[ ,1:6])
 
 # Plot each of the BoxCox transformed predictors
-Cont_vars <- colnames(Predictors_BoxCox)
+Predictors_BoxCox_hist <- Plot_histograms(Predictors_BoxCox)
+Predictors_BoxCox_point <- Plot_Points(Predictors_BoxCox)
 
-for (i in seq_along(Cont_vars)){
-    plot(Predictors_BoxCox[ , i], ylab = Cont_vars[i])
-}
 
 # Test the correlations between the BoxCox transformed predictors
 corBoxCox <- cor(Predictors_BoxCox, use = "complete.obs")
@@ -94,11 +125,10 @@ xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox",  "center
 Predictors_centerScale <- predict(xTrans, Predictors_Test[ ,1:6])
 
 # Plot each of the transformed variables
-Cont_vars <- colnames(Predictors_centerScale)
+Predictors_CS_hist <- Plot_histograms(Predictors_centerScale)
+Predictors_CS_point <- Plot_Points(Predictors_centerScale)
 
-for (i in seq_along(Cont_vars)){
-    plot(Predictors_centerScale[ , i], ylab = Cont_vars[i])
-}
+
 # Test the correlations between the BoxCox + centered/scaled transformed predictors
 corBoxCox_CS <- cor(Predictors_centerScale, use = "complete.obs")
 corrplot(corBoxCox_CS, method = "number")
@@ -106,56 +136,14 @@ corrplot(corBoxCox_CS, method = "number")
 
 ### Test removal of zero variance and BoxCox + centering and scaling + PCA
 ```{r}
-library(ggplot2)
 xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox",  "center", "scale", "pca"),
                      na.remove = TRUE)
 
 Predictors_PCA <- predict(xTrans, Predictors_Test[ ,1:6])
 
 # Plot each of the transformed variables
-Cont_vars <- colnames(Predictors_PCA)
-PCA_transformed_hist <- list()
-PCA_transformed_point <- list()
-
-for (i in seq_along(Cont_vars)){
-    print(i)
-    PCA_transformed_hist[[i]] <- ggplot(data.frame(x=Predictors_PCA[ , i]), aes(x))+ geom_histogram()+ ylab(Cont_vars[i])
-    print(PCA_transformed_hist[[i]])
-    
-    PCA_transformed_point[[i]] <- ggplot(data.frame(x= seq_along(Predictors_PCA[ , i]), y = Predictors_PCA[ ,i]), aes(x, y)) + geom_point()+ ylab(Cont_vars[i])
-    print(PCA_transformed_point[[i]])
-    
-}
-
-# Custom function to plot the distribution of the predictors as a histogram
-Plot_histograms <- function(The_Data){
-  
-  List_hist <- list()
-  Cont_vars <- colnames(The_Data)
-  
-  for (i in seq_along(Cont_vars)){
-    List_hist[[i]] <- ggplot(data.frame(x=The_Data[ , i]), aes(x))+ geom_histogram()+ ylab(Cont_vars[i])
-  }
-    return(List_hist)
-}
-
-# Custom function to plot the distribution of the predictors as a point plot with y = predictor and x = index number
-Plot_Points <- function(The_Data){
-  
-  List_point <- list()
-  Cont_vars <- colnames(The_Data)
-  
-  for (i in seq_along(Cont_vars)){
-    List_point[[i]] <- ggplot(data.frame(x=seq_along(The_Data[ , i]), y = The_Data[ , i]), aes(x, y))+ geom_point()+ ylab(Cont_vars[i])
-  }
-    return(List_point)
-}
-
-
-
-
-Testt <- Plot_Points(Predictors_PCA)
-
+Predictors_PCA_hist <- Plot_histograms(Predictors_PCA)
+Predictors_PCA_point <- Plot_Points(Predictors_PCA)
 
 # Test the correlations between the BoxCox + centered/scaled + PCA transformed predictors
 corBoxCox_CS_PCA <- cor(Predictors_PCA, use = "complete.obs")
