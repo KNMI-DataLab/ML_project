@@ -50,26 +50,26 @@ Next, we build a few functions in advance of the analysis. These functions wil p
 library(ggplot2)
 
 # Custom function to plot the distribution of the predictors as a histogram
-Plot_histograms <- function(The_Data){
+Plot_histograms <- function(The_Data, The_Main){
   
   List_hist <- list()
   Cont_vars <- colnames(The_Data)
   
   for (i in seq_along(Cont_vars)){
-    List_hist[[i]] <- ggplot(data.frame(x=The_Data[ , i]), aes(x))+ geom_histogram()+ xlab(Cont_vars[i])
+    List_hist[[i]] <- ggplot(data.frame(x=The_Data[ , i]), aes(x))+ geom_histogram()+ xlab(Cont_vars[i]) + ggtitle(The_Main)
     #print(List_hist[[i]])
   }
     return(List_hist)
 }
 
 # Custom function to plot the distribution of the predictors as a point plot with y = predictor and x = index number
-Plot_Points <- function(The_Data){
+Plot_Points <- function(The_Data, The_Main){
   
   List_point <- list()
   Cont_vars <- colnames(The_Data)
   
   for (i in seq_along(Cont_vars)){
-    List_point[[i]] <- ggplot(data.frame(x=seq_along(The_Data[ , i]), y = The_Data[ , i]), aes(x, y))+ geom_point()+ ylab(Cont_vars[i]) + xlab("row index")
+    List_point[[i]] <- ggplot(data.frame(x=seq_along(The_Data[ , i]), y = The_Data[ , i]), aes(x, y))+ geom_point()+ ylab(Cont_vars[i]) + xlab("row index") + ggtitle(The_Main)
     #print(List_point[[i]])
   }
     return(List_point)
@@ -93,8 +93,8 @@ corrplot(corTest, method = "number")
 Next, plot the raw data
 
 ```{r} 
-Predictors_Unchanged_hist <- Plot_histograms(Predictors_Test[1:6])
-Predictors_Unchanged_point <- Plot_Points(Predictors_Test[1:6])
+Predictors_Unchanged_hist <- Plot_histograms(Predictors_Test[1:6], "Unchanged")
+Predictors_Unchanged_point <- Plot_Points(Predictors_Test[1:6], "Unchanged")
 
 ````
 
@@ -114,8 +114,8 @@ xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox"),
 Predictors_BoxCox <- predict(xTrans, Predictors_Test[ ,1:6])
 
 # Plot each of the BoxCox transformed predictors
-Predictors_BoxCox_hist <- Plot_histograms(Predictors_BoxCox)
-Predictors_BoxCox_point <- Plot_Points(Predictors_BoxCox)
+Predictors_BoxCox_hist <- Plot_histograms(Predictors_BoxCox, "BoxCox")
+Predictors_BoxCox_point <- Plot_Points(Predictors_BoxCox, "BoxCox")
 
 
 # Test the correlations between the BoxCox transformed predictors
@@ -141,8 +141,8 @@ xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox",  "center
 Predictors_centerScale <- predict(xTrans, Predictors_Test[ ,1:6])
 
 # Plot each of the transformed variables
-Predictors_CS_hist <- Plot_histograms(Predictors_centerScale)
-Predictors_CS_point <- Plot_Points(Predictors_centerScale)
+Predictors_CS_hist <- Plot_histograms(Predictors_centerScale, "BC + CS")
+Predictors_CS_point <- Plot_Points(Predictors_centerScale, "BC + CS")
 
 
 # Test the correlations between the BoxCox + centered/scaled transformed predictors
@@ -157,9 +157,12 @@ xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox",  "center
 
 Predictors_PCA <- predict(xTrans, Predictors_Test[ ,1:6])
 
+# Rotation
+xTrans$rotation
+
 # Plot each of the transformed variables
-Predictors_PCA_hist <- Plot_histograms(Predictors_PCA)
-Predictors_PCA_point <- Plot_Points(Predictors_PCA)
+Predictors_PCA_hist <- Plot_histograms(Predictors_PCA, "BC +CS +PCA")
+Predictors_PCA_point <- Plot_Points(Predictors_PCA, "BC +CS +PCA")
 
 # Test the correlations between the BoxCox + centered/scaled + PCA transformed predictors
 corBoxCox_CS_PCA <- cor(Predictors_PCA, use = "complete.obs")
@@ -172,7 +175,7 @@ Next, we want to plot the unchanged data and all of the subsequent transformatio
 
 Before transformation, after BoxCox and after centering/scaling we have 6 predictors. After PCA we have 5 principal components.This means that in the last step (:nr 6) the principal component (PC) 5 is plotted.   
 
-```{r warning=FALSE}
+```{r warning=FALSE, message=FALSE}
 library(gridExtra)
 
 for (i in seq_along(Predictors_Unchanged_point)) {
@@ -181,13 +184,13 @@ for (i in seq_along(Predictors_Unchanged_point)) {
     Plot_2_point <- Predictors_BoxCox_point[[i]]
     Plot_3_point <- Predictors_CS_point[[i]]
     if(i < 6){Plot_4_point <- Predictors_PCA_point[[i]]}
-    grid.arrange(Plot_1_point, Plot_2_point, Plot_3_point, Plot_4_point, ncol = 4)
+    grid.arrange(Plot_1_point, Plot_2_point, Plot_3_point, Plot_4_point, ncol = 2)
  
     Plot_1_hist <- Predictors_Unchanged_hist[[i]]
     Plot_2_hist <- Predictors_BoxCox_hist[[i]]
     Plot_3_hist <- Predictors_CS_hist[[i]]
     if(i < 6){Plot_4_hist <- Predictors_PCA_hist[[i]]}
-    grid.arrange(Plot_1_hist, Plot_2_hist, Plot_3_hist, Plot_4_hist, ncol = 4)
+    grid.arrange(Plot_1_hist, Plot_2_hist, Plot_3_hist, Plot_4_hist, ncol = 2)
        
 }
 # Important to note: 
@@ -197,7 +200,7 @@ for (i in seq_along(Predictors_Unchanged_point)) {
 # Test missing values in each of the transformed predictor sets:
 colSums(is.na(Predictors_BoxCox))
 colSums(is.na(Predictors_centerScale))
-colSums(is.na(Predictors_PCA))
+colSums(is.na(Predictors_PCA)) 
 
 ```
 
