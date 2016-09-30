@@ -26,7 +26,20 @@ This is what the data looks like:
 
 ```{r echo=FALSE}
 head(Predictors_Test)
+
 ``` 
+
+Here we test how many NA values there are in the file.
+As the code below shows, there are NA values in the air temperature (TL) and dew point temperature (TD) columns. 
+** Note: Go back to file where you build Predictors_Test to see which stations contain NA's for TL and TD. Also test WHEN you have these NA values **
+
+```{r}
+# For the continuous variables, test how many NA values there are per variable  
+colSums(is.na(Predictors_Test[, 1:6]))
+
+```
+
+
 
 Next, we build a few functions in advance of the analysis. These functions wil plot histogram/point plots of each of the predictors and save each plot in a list. 
 
