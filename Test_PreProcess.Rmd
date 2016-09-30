@@ -194,6 +194,11 @@ for (i in seq_along(Predictors_Unchanged_point)) {
 # The geom_point and stat_bin remove 767 rows due to missing values
 # Bin size is automatically set to 30
 
+# Test missing values in each of the transformed predictor sets:
+colSums(is.na(Predictors_BoxCox))
+colSums(is.na(Predictors_centerScale))
+colSums(is.na(Predictors_PCA))
+
 ```
 
 ```{r}
