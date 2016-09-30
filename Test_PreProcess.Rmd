@@ -14,6 +14,9 @@ First we read in a set of predictors
 # Empty environment
 rm(list=ls())
 
+# Install packages if needed
+#install.packages("gridExtra")
+
 # Read in the predictors
 load("C:/Users/Eva/Documents/Stage/ML_project/Predictors_Test_6h.Rda")
 
@@ -150,5 +153,45 @@ corBoxCox_CS_PCA <- cor(Predictors_PCA, use = "complete.obs")
 corrplot(corBoxCox_CS_PCA, method = "number")
 ```
 
+### Side-by-side comparison
 
+Next, we want to plot the unchanged data and all of the subsequent transformations side-by-side so that you can see the effect of each of the transformations. 
+
+Before transformation, after BoxCox and after centering/scaling we have 6 predictors. After PCA we have 5 principal components.This means that in the last step (:nr 6) the principal component (PC) 5 is plotted.   
+
+```{r warning=FALSE}
+library(gridExtra)
+
+for (i in seq_along(Predictors_Unchanged_point)) {
+    print(i)
+    Plot_1_point <- Predictors_Unchanged_point[[i]]
+    Plot_2_point <- Predictors_BoxCox_point[[i]]
+    Plot_3_point <- Predictors_CS_point[[i]]
+    if(i < 6){Plot_4_point <- Predictors_PCA_point[[i]]}
+    grid.arrange(Plot_1_point, Plot_2_point, Plot_3_point, Plot_4_point, ncol = 4)
+ 
+    Plot_1_hist <- Predictors_Unchanged_hist[[i]]
+    Plot_2_hist <- Predictors_BoxCox_hist[[i]]
+    Plot_3_hist <- Predictors_CS_hist[[i]]
+    if(i < 6){Plot_4_hist <- Predictors_PCA_hist[[i]]}
+    grid.arrange(Plot_1_hist, Plot_2_hist, Plot_3_hist, Plot_4_hist, ncol = 4)
+       
+}
+# Important to note: 
+# The geom_point and stat_bin remove 767 rows due to missing values
+# Bin size is automatically set to 30
+
+```
+
+```{r}
+# Test grid arrange:
+
+# Plot_1 <-  Predictors_PCA_point[[1]]
+# Plot_2 <-  Predictors_PCA_point[[2]]
+# Plot_3 <-  Predictors_PCA_point[[3]]
+# Plot_4 <-  Predictors_PCA_point[[4]]
+# 
+# grid.arrange(Plot_1, Plot_2, Plot_3, Plot_4, ncol = 4)
+
+```
 
