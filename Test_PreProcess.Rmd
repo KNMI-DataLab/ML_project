@@ -159,6 +159,8 @@ To set another value see:
 To examine whether the pca was performed correctly we again plot the predictors after this transformation. However, we also analyse the variable loadings (: how much did the 'old' predictor contribute to the principal component). Furthermore, a scree plot is produced which shows how much of the total variance is explained by the principal components. To build the scree plot I adapted a method from: [link](https://www.analyticsvidhya.com/blog/2016/03/practical-guide-principal-component-analysis-python/) 
 Important to note!!! By applying the method to the PC's that you get after transformation you can only see the percentage variance explained for the PC's that came out of the preProcessing prediction. In other words: Only the PC's that together explain 95% of the variance are shown. Unfortunately, you cannot extract the rest of the PC's when you use caret to perform a PCA. 
 
+We also plot a scatterplot matrix of each of the PC's. This takes a while to plot (approximatly 1 minute). You can see that there are outliers in the PC's. Outliers can have a negative impact on the reliability of your calculated PC's [link](http://www.math.umn.edu/~lerman/Meetings/SIAM2012_Sujay.pdf) **Note: Do we need to solve this? (Probably yes, but...)**
+
 ```{r}
 
 xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox",  "center", "scale", "pca"),
@@ -190,6 +192,10 @@ PC_prop_var <- PC_var/(sum(PC_var))
 plot(y = PC_prop_var, x =1:5, type = "b", xlab = "Principal Components", ylab = "Proportion of variance explained")
 
 
+# Plot the PC's versus each other in a scatterplot matrix
+pairs(Predictors_PCA)
+
+
 # Plot each of the transformed variables
 Predictors_PCA_hist <- Plot_histograms(Predictors_PCA, "BC +CS +PCA")
 Predictors_PCA_point <- Plot_Points(Predictors_PCA, "BC +CS +PCA")
@@ -197,6 +203,8 @@ Predictors_PCA_point <- Plot_Points(Predictors_PCA, "BC +CS +PCA")
 # Test the correlations between the BoxCox + centered/scaled + PCA transformed predictors
 corBoxCox_CS_PCA <- cor(Predictors_PCA, use = "complete.obs")
 corrplot(corBoxCox_CS_PCA, method = "number")
+
+
 ```
 
 ### Side-by-side comparison
