@@ -31,7 +31,7 @@ head(Predictors_Test)
 
 Here we test how many NA values there are in the file.
 As the code below shows, there are NA values in the air temperature (TL) and dew point temperature (TD) columns. 
-** Note: Go back to file where you build Predictors_Test to see which stations contain NA's for TL and TD. Also test WHEN you have these NA values **
+**Note: Go back to file where you build Predictors_Test to see which stations contain NA's for TL and TD. Also test WHEN you have these NA values**
 
 ```{r}
 # For the continuous variables, test how many NA values there are per variable  
@@ -151,14 +151,44 @@ corrplot(corBoxCox_CS, method = "number")
 ```
 
 ### Test removal of zero variance and BoxCox + centering and scaling + PCA
+
+By default, the pca applied here will retain 95% of the variance
+To set another value see:
+[link](http://stackoverflow.com/questions/32557524/principal-component-analysis-with-caret)
+
+To examine whether the pca was performed correctly we again plot the predictors after this transformation. However, we also analyse the variable loadings (: how much did the 'old' predictor contribute to the principal component). Furthermore, a scree plot is produced which shows how much of the total variance is explained by the principal components. To build the scree plot I adapted a method from: [link](https://www.analyticsvidhya.com/blog/2016/03/practical-guide-principal-component-analysis-python/) 
+Important to note!!! By applying the method to the PC's that you get after transformation you can only see the percentage variance explained for the PC's that came out of the preProcessing prediction. In other words: Only the PC's that together explain 95% of the variance are shown. Unfortunately, you cannot extract the rest of the PC's when you use caret to perform a PCA. 
+
 ```{r}
+
 xTrans <- preProcess(Predictors_Test[, 1:6], method = c("zv", "BoxCox",  "center", "scale", "pca"),
                      na.remove = TRUE)
 
 Predictors_PCA <- predict(xTrans, Predictors_Test[ ,1:6])
 
-# Rotation
+# Basic information on the transformation:
+print(xTrans)
+
+# The rotation column stores the variable loadings
+# Each principal component after the PCA is a linear combination of the original predictors.
+# The coefficient for each predictor is called loading. 
+# A variable loading close to 0 indicates that a predictor did not contribute much to the principal component
 xTrans$rotation
+
+# Scree plot of the explained variance
+
+# Get the standard deviation per PC from the transformation object
+PC_stdev <- apply(Predictors_PCA, 2, sd, na.rm = TRUE)
+
+# Get the variance per PC by taking the square of the standard deviation per PC
+PC_var <- PC_stdev^2
+
+# Calculate proportion of total variance explained per PC by dividing PC_var by the total variance explained
+PC_prop_var <- PC_var/(sum(PC_var))
+
+# scree plot
+plot(y = PC_prop_var, x =1:5, type = "b", xlab = "Principal Components", ylab = "Proportion of variance explained")
+
 
 # Plot each of the transformed variables
 Predictors_PCA_hist <- Plot_histograms(Predictors_PCA, "BC +CS +PCA")
