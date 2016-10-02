@@ -1,0 +1,222 @@
+---
+title: "Data Preprocessing including dummy variables"
+author: "Eva Kleingeld"
+date: "October 2, 2016"
+output: html_document
+---
+
+
+
+```{r}
+# Empty environment
+rm(list=ls())
+
+# Install packages
+# install.packages("corrplot")
+# install.packages("GGally")
+# install.packages("lubridate")
+
+# Read in the environmental dataset
+load("F:/KNMI/MLProject/Env_Data.Rda")
+
+```
+
+
+### Build the training set
+```{r}
+# Read in the 6h GMS dataset and remove al data which is not labeled as 'valid' 
+load("F:/KNMI/GMS_6h.Rda")
+GMS_6h <- GMS_6h[GMS_6h$QUALITY == "valid", ]
+
+# Drop the quality column in the 6h GMS dataset
+GMS_6h <- GMS_6h[ ,-7]
+
+# Merge 6h GMS data and environmental dataset
+Data_6h <-merge(GMS_6h,Env_Data_4,by.x=c("LOCATION","SENSOR"),by.y=c("MISD","SENSOR"))
+
+# Split into input (predictors) and output (target variable)
+# Output
+Target_Train <- Data_6h$TEMP
+
+#Add a HOD ("Hour of Day") column to the front of the data frame
+library(lubridate)
+
+HOD_Train <- hour(Data_6h$TIMESTAMP) + minute(Data_6h$TIMESTAMP)/60
+Data_6h <- cbind(HOD_Train, Data_6h)
+
+# Drop LOCATION/SENSOR/TIMESTAMP/Unix_Time and TEMP
+To_drop <- c("LOCATION", "SENSOR", "TIMESTAMP", "TEMP", "Unix_Time")
+Data_6h <- Data_6h[ ,!(names(Data_6h) %in% To_drop)]
+
+# Place all predictors in one data frame
+Predictors_Train <- Data_6h
+
+```
+
+### Build the test set
+
+```{r}
+# Build the test set  -----------------------------------------------------
+
+# Read in the 1.5h GMS dataset and remove all data which is not labeled as 'valid' 
+load("F:/KNMI/MLProject/GMS_1.5h.Rda")
+GMS_1.5h <- GMS_1.5h[GMS_1.5h$QUALITY == "valid", ]
+GMS_1.5h <- GMS_1.5h[ ,-7]
+
+Data_1.5h <-merge(GMS_1.5h,Env_Data_4,by.x=c("LOCATION","SENSOR"),by.y=c("MISD","SENSOR"))
+
+# Split into input (predictors) and output (target variable)
+# Output
+Target_Test <- Data_1.5h$TEMP
+
+# We need to add an hour of day column to train and remove Unix_Time
+# This should be done in the Select_6h.R file
+HOD_Test <- hour(Data_1.5h$TIMESTAMP) + minute(Data_1.5h$TIMESTAMP)/60
+Data_6h <- cbind(HOD_Test, Data_1.5h)
+
+# Drop LOCATION/SENSOR/TIMESTAMP/Unix_Time and TEMP
+To_drop <- c("LOCATION", "SENSOR", "TIMESTAMP", "TEMP", "Unix_Time")
+Data_1.5h <- Data_1.5h[ ,!(names(Data_1.5h) %in% To_drop)]
+
+# Place all predictors in one data frame
+Predictors_Test <- Data_1.5h
+
+```
+
+### Change data format 
+
+Add 10m to all ALT values to ensure there are no negative heights. 
+Change all temperatures from celsius to kelvin.
+
+```{r}
+# Add 10m to ALT for train and test data
+Predictors_Train$ALT <- Predictors_Train$ALT + 10
+Predictors_Test$ALT <- Predictors_Test$ALT + 10
+
+# Convert TD, TL in Predictors to Kelvin
+
+# For train
+Predictors_Train$TL <- Predictors_Train$TL + 273.15
+Predictors_Train$TD <- Predictors_Train$TL + 273.15
+
+# For test
+Predictors_Test$TL <- Predictors_Test$TL + 273.15
+Predictors_Test$TD <- Predictors_Test$TD + 273.15
+
+# Convert target variables to Kelvin
+Target_Train <- Target_Train + 273.15
+Target_Test <- Target_Test + 273.15
+
+# Save these sets of predictors 
+# save(Predictors_Train, file = "Predictors_Train_6h.Rda")
+# save(Predictors_Test, file = "Predictors_Test_6h.Rda")
+```
+
+# Some analysis of the raw data
+```{r}
+library(corrplot)
+
+corTest <- cor(Predictors_Test, use = "complete.obs")
+corrplot(corTest, method = "circle")
+
+```
+
+
+# PreProcessing
+
+Here we remove variables with zero variance ("zv"), perform a BoxCox transform to resolve skewness ("BoxCOx"), center and scale the data ("center", "scale") and perform a principal component analysis ("pca"). 
+
+**Note: We here choose to transform the test set. This is because in the train set the correlation between TL and TD is 1. Also, the test set is much smaller than the train set, so the code runs faster. Normally you build Xtrans with the train set and then transform both the train and test set with the same Xtrans.**
+
+```{r}
+library(caret)
+xTrans <- preProcess(Predictors_Test, method = c("zv", "BoxCox",  "center", "scale", "pca"),
+                     na.remove = TRUE)
+
+print(xTrans)
+
+Predictors_Test <- predict(xTrans, Predictors_Test)
+
+# Number of PC's 
+xTrans$numComp
+# BoxCox transformed predictors
+xTrans$method$BoxCox
+```
+
+The total number of principal components is 'r xTrans$numComp' , whereas the number of predictors was 33 before the transformation. As the summary of xTrans shows, all predictors were centered, scaled and pca transformed. Only 'r length(xTrans$method$BoxCox)' predictors were BoxCox transformed, namely: 'r xTrans$method$BoxCox'. 
+
+
+Next, we look at the variable loadings. 
+The rotation column of the xTrans object stores the variable loadings. 
+Each principal component after the PCA is a linear combination of the original predictors.The coefficient for each predictor is called loading. A variable loading close to 0 indicates that a predictor did not contribute much to the principal component
+
+```{r}
+xTrans$rotation
+
+```
+
+Next, a scree plot is produced which shows how much of the total variance is explained by the principal components. To build the scree plot I adapted a method from: [link](https://www.analyticsvidhya.com/blog/2016/03/practical-guide-principal-component-analysis-python/) 
+Important to note!!! By applying the method to the PC's that you get after transformation you can only see the percentage variance explained for the PC's that came out of the preProcessing prediction. In other words: Only the PC's that together explain 95% of the variance are shown. Unfortunately, you cannot extract the rest of the PC's when you use caret to perform a PCA. 
+
+```{r}
+# Scree plot of the explained variance
+
+# Get the standard deviation per PC from the transformation object
+PC_stdev <- apply(Predictors_Test, 2, sd, na.rm = TRUE)
+
+# Get the variance per PC by taking the square of the standard deviation per PC
+PC_var <- PC_stdev^2
+
+# Calculate proportion of total variance explained per PC by dividing PC_var by the total variance explained
+PC_prop_var <- PC_var/(sum(PC_var))
+
+# scree plot
+plot(y = PC_prop_var, x = 1:length(Predictors_Test), type = "b", xlab = "Principal Components", ylab = "Proportion of variance explained")
+
+```
+
+To get an idea of what these PC's look like we plot a few of them in a pairwise plot (Also called a scatterplot matrix).
+
+The PC's show that outliers may throw off your pca. 
+For more information on this topic, see: 
+[link](http://www.math.umn.edu/~lerman/Meetings/SIAM2012_Sujay.pdf) **Note: Do we need to solve this? (Probably yes, but...)** 
+
+The pairswise plots show that PC's higher than PC5 tend to have outliers. 
+PC16-PC20 seem to have much issues. 
+
+**Note: Code takes a while to run**
+
+```{r}
+
+pairs(Predictors_Test[, 1:5])
+pairs(Predictors_Test[ , 6:10]) 
+pairs(Predictors_Test[ , 11:15])
+pairs(Predictors_Test[ , 16:20])
+pairs(Predictors_Test[ , 20:25])
+
+
+```
+
+Next, to check how the pca went, we again make a correlation plot. 
+If the pca went well, the PC's should not be correlated. (: The pca went well)
+
+```{r}
+corTest_2 <- cor(Predictors_Test, use = "complete.obs")
+corrplot(corTest_2, method = "circle")
+
+``` 
+Next, we test the zero variance
+```{r}
+NearZero_Test <- nearZeroVar(Predictors_Test, names = TRUE, saveMetrics = TRUE)
+head(NearZero_Test)
+
+# As expected, the are no zero variance variables, because those are removed during preProcessing
+any(NearZero_Test$zeroVar)
+# After pca there are also near zero variables
+any(NearZero_Test$nzv)
+
+
+
+
+```
+
