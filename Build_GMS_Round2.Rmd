@@ -1,0 +1,53 @@
+---
+title: "Build test/train for round 2 model building"
+author: "Eva Kleingeld"
+date: "October 5, 2016"
+output: html_document
+---
+
+First we read in a large dataset containing six days worth of GMS data. 
+On four of these days temperatures were below freezing for (parts of) the day. 
+On two days temperatures were always above freezing. 
+The selected days each experienced different meteorological conditions.
+For more details on the weather during the selected days we refer to the scripts:
+- Met_conditions.Rmd
+- Analyze_Days.R
+
+```{r}
+# Empty environment
+rm(list=ls())
+
+# Install packages if needed
+
+# Read in the 6 Days data set
+load("F:/KNMI/Six_Days.Rda")
+
+# Rename dataframe
+Six_Days <- Six_Days_3
+rm(Six_Days_3)
+
+# Examine data frame
+str(Six_Days)
+```
+
+Next, we need to select a six hour *train* set and a 1 hour and 30 minute *test* set. 
+The trains set will be used to build the model, the test set will be used to test it. 
+
+We use the createDataPartition function from the caret package to make these sets. 
+
+6 days times 24 hours is 144 hours. A subset of six hours from a total of 144 hours is 4.2% of all data. A subset of 1.5 hours is 1.05% of all data. 
+
+
+```{r}
+library(caret)
+
+
+
+```
+
+
+
+
+
+
+
