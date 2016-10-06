@@ -23,11 +23,11 @@ rm(list=ls())
 load("F:/KNMI/Six_Days.Rda")
 
 # Rename dataframe
-Six_Days <- Six_Days_3
+The_Days <- Six_Days_3
 rm(Six_Days_3)
 
 # Examine data frame
-str(Six_Days)
+str(The_Days)
 ```
 
 Next, we need to select a six hour *train* set and a 1 hour and 30 minute *test* set. 
@@ -37,15 +37,69 @@ We use the createDataPartition function from the caret package to make these set
 
 6 days times 24 hours is 144 hours. A subset of six hours from a total of 144 hours is 4.2% of all data. A subset of 1.5 hours is 1.05% of all data. 
 
+Unfortunately, the createDataPartition function can only split the data into pieces. We first split the data into 95% and 5%. Of the 5% we take 1.5% test and 3% train. We thus have a train that is twice as large as the test. 
 
+The createDataPartition function uses stratified random sampling to make the train/test split. The outcome of the createDataPartition function is an object which is contains all the row numbers that should be in the train set. 
+
+We first make a 95%/5% split. The 5% Sub set is split into test and train. 
 ```{r}
 library(caret)
+
+# Create the 95%/5% split
+InSub <- createDataPartition(The_Days$TEMP, p = 0.05, list = FALSE)
+
+# 5% of all data
+Sub <- The_Days[InSub, ]
+
+# Test if the split went well 
+(length(Sub$LOCATION)/ length(The_Days$LOCATION)) * 100
+
+# Split the subset into train and test (70% train, 30% test) 
+InTrain <- createDataPartition(Sub$TEMP, p = 0.7, list = FALSE)
+
+# Build the train set
+Train_data <- Sub[InTrain, ]
+
+# Build the test set
+Test_data <- Sub[-(InTrain), ]
+
+# Is the test set indeed 30% of the data?
+nrow(Test_data)/(nrow(Test_data) + nrow(Train_data)) * 100
+
+```
+ 
+The next step is to test the distribution of data in the test and train sets. 
+We also make a correlation plot to test wether the correlations between the predictors in the test and train sets are approximately similar. 
+
+
+```{r}
+library(corrplot)
+
+# Make histograms of the distribution of the data in test, train and the original data and plot side by side
+
+# Columns you wish to plot
+PlotCol <- c(8)
+
+for (i in (PlotCol)){
+  par(mfrow=c(1,3))
+  print(i)
+  hist(The_Days[, i], freq = FALSE, xlab = colnames(The_Days)[i], main = paste("Original data", colnames(The_Days)[i]))
+  hist(Train_data[, i], freq = FALSE, xlab = colnames(Train_data)[i], main = paste("Train data", colnames(Train_data)[i]))
+  hist(Test_data[, i], freq = FALSE, xlab = colnames(Test_data)[i], main = paste("Test data", colnames(Test_data)[i]))
+}
+
+
+# Make a correlation plot for the numerical values for both test and train
+Keep <- c("TL", "TD", "TEMP", "Unix_Time")
+corTrain <- cor(Train_data[ ,(names(Train_data) %in% Keep)], use = "complete.obs")
+corrplot(corTrain, method = "number")
+
+corTest <- cor(Test_data[ ,(names(Test_data) %in% Keep)], use = "complete.obs")
+corrplot(corTest, method = "number")
 
 
 
 ```
-
-
 
 
 
