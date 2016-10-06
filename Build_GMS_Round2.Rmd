@@ -71,8 +71,15 @@ Unfortunately, the createDataPartition function can only split the data into pie
 The createDataPartition function uses stratified random sampling to make the train/test split. The outcome of the createDataPartition function is an object which is contains all the row numbers that should be in the train set. 
 
 We first make a 95%/5% split. The 5% Sub set is split into test and train. 
+
+**Check how many times you have to set the seed**
+[link](http://stackoverflow.com/questions/20624698/fixing-set-seed-for-an-entire-session)
 ```{r}
 library(caret)
+
+# In order to generate the same sequence of random numbers everytime we run this script (so that we every time get the same test/train split) we set a seed
+set.seed(42)
+
 
 # Create the 95%/5% split
 InSub <- createDataPartition(The_Days$TEMP, p = 0.05, list = FALSE)
@@ -82,6 +89,7 @@ Sub <- The_Days[InSub, ]
 
 # Test if the split went well 
 (length(Sub$LOCATION)/ length(The_Days$LOCATION)) * 100
+
 
 # Split the subset into train and test (70% train, 30% test) 
 InTrain <- createDataPartition(Sub$TEMP, p = 0.7, list = FALSE)
