@@ -30,6 +30,35 @@ rm(Six_Days_3)
 str(The_Days)
 ```
 
+Add in a Day of Year (DOY) and Hour of Day (HOD) column instead of the POSIXct column. 
+
+**This code should be in the Select_Days.R script and should replace the Unix_Time code. However, as I currently have no access to the 'raw' and filtered GMS data the code is placed in this script.**
+
+**PAY ATTENTION: If you move the code to build HOD/DOY the columns which are removed will change!!**
+
+```{r}
+library(lubridate)
+
+# Build a DOY column
+DOY_Days <-  as.numeric(strftime(The_Days$TIMESTAMP, format = "%j"))
+
+# The selected days run from, for example 24-11-09 01:00:00 until 01:00:00 25-11-09 which means that there are 12 unique DOY values for six days of data
+length(unique(DOY_Days)) 
+
+# Build a HOD column
+HOD_Days <- hour(The_Days$TIMESTAMP) + minute(The_Days$TIMESTAMP)/60
+
+# Add the columns to the start of the The_Days data frame
+The_Days <- cbind(DOY_Days, HOD_Days, The_Days)
+
+# Remove Unix_time
+To_drop <- c("Unix_Time")
+The_Days <- The_Days[ ,!(names(The_Days) %in% To_drop)]
+
+
+```
+
+
 Next, we need to select a six hour *train* set and a 1 hour and 30 minute *test* set. 
 The trains set will be used to build the model, the test set will be used to test it. 
 
@@ -88,6 +117,8 @@ for (i in (PlotCol)){
   hist(Test_data[, i], freq = FALSE, xlab = colnames(Test_data)[i], main = paste("Test data", colnames(Test_data)[i]))
 }
 
+# Set device to one plot again and remove old plots
+dev.off()
 
 # Make a correlation plot for the numerical values for both test and train
 Keep <- c("TL", "TD", "TEMP", "Unix_Time")
