@@ -87,27 +87,27 @@ Predictors_Train <- Train_set
 # Build the test set  -----------------------------------------------------
 
 # Read in the 1.5h GMS dataset and remove all data which is not labeled as 'valid' 
-load("F:/KNMI/MLProject/GMS_1.5h.Rda")
-GMS_1.5h <- GMS_1.5h[GMS_1.5h$QUALITY == "valid", ]
-GMS_1.5h <- GMS_1.5h[ ,-7]
+Test_set <- Test_set[Test_set$QUALITY == "valid", ]
 
-Data_1.5h <-merge(GMS_1.5h,Env_Data_4,by.x=c("LOCATION","SENSOR"),by.y=c("MISD","SENSOR"))
+# Drop the QUALITY column by name 
+To_drop <- c("QUALITY")
+Test_set <- Test_set[ ,!(names(Test_set) %in% To_drop)]
+
+# Merge the test set and the environmental dataset
+Test_set <-merge(Test_set,Env_Data,by.x=c("LOCATION","SENSOR"),by.y=c("MISD","SENSOR"))
+
 
 # Split into input (predictors) and output (target variable)
 # Output
-Target_Test <- Data_1.5h$TEMP
+Target_Test <- Test_set$TEMP
 
-# We need to add an hour of day column to train and remove Unix_Time
-# This should be done in the Select_6h.R file
-HOD_Test <- hour(Data_1.5h$TIMESTAMP) + minute(Data_1.5h$TIMESTAMP)/60
-Data_6h <- cbind(HOD_Test, Data_1.5h)
 
-# Drop LOCATION/SENSOR/TIMESTAMP/Unix_Time and TEMP
-To_drop <- c("LOCATION", "SENSOR", "TIMESTAMP", "TEMP", "Unix_Time")
-Data_1.5h <- Data_1.5h[ ,!(names(Data_1.5h) %in% To_drop)]
+# Drop LOCATION/SENSOR/TIMESTAMP and TEMP
+To_drop <- c("LOCATION", "SENSOR", "TIMESTAMP", "TEMP")
+Test_set <- Test_set[ ,!(names(Test_set) %in% To_drop)]
 
 # Place all predictors in one data frame
-Predictors_Test <- Data_1.5h
+Predictors_Test <- Test_set
 
 ```
 
