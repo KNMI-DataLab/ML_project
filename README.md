@@ -23,7 +23,7 @@ Environmental_Data.Rmd - Here the environmental dataset is built. In this script
 
 Analyze_Env.R - In this script the environmental dataset is analyzed. The distribution of the LAT/LON/ALT data is analyzed with histograms and a shapiro test. The skewness and kurtosis are also analyzed. Based on these analyses we can determine that ALT is definately positively skewed and leptokurtic.   
 
------- Scripts for building/analyzing 5/10 minute GMS subset ------------------------------------------------------------------------
+------ Script for building/analyzing 5/10 minute GMS subset ------------------------------------------------------------------------
 miniSubset.Rmd - This script can be used to build either a 5 minute or a 10 minute 'miniature' subset. This small subset is used in the first round of model building. 
 
 One day of data is read in and with the lubridate package a time interval is defined. This time interval is used to 'cut' a 10 minute slice of data from the one day GMS data set. Next, the subset is melted to the correct shape and merged with a filtered subset, for the same time interval. A new Time column is added with the Linux time (seconds passed since 1970). This is because the POSIXct TIMESTAMP column can not be used as input by any of the ML algorithms: It is not an accepted input format. 
@@ -34,7 +34,7 @@ Finally, the subset is saved as an Rdata file (which can quickly be loaded in wi
 
 
 
------- Script for the first round of model development ---------------------------------------------------------------------------
+------ Script for building the 'miniature' models ---------------------------------------------------------------------------
 miniML.Rmd - This script contains the code to build 'miniature models'. We call these models mini models because they are built on only 5 minutes of data. This small amount of training data is not enough to build a reliable model for predicting TW. However, it is useful to test the code you use to build the different models. 
 
 The first part of the script builds the test and train data sets. First, the 10 minute GMS subset is read in. Next, all data which is not labeled as 'valid' is removed. Now that we have only 'valid' data remaining we merge the GMS data with the environmental data. This dataset is then split into train and test datasets. Each train/test set contains 5 minutes of data. The LOC/SENSOR/TIMESTAMP columns are dropped from the test and train sets because these columns can not be used as input by most ML algorithms. 
@@ -68,6 +68,8 @@ This code conatins a level plot indictaing how many trees need to be built to re
 
 Part 10, the final part of the script, contains the code for the Support Vector Machine. This code follows the standard setup. 
 
+------ Scripts for building/analyzing manually selected subsets of data of 6h/1.5h -----------------------------------------
+In the second round of modeling we first wanted to build models with a 6h train and 1.5h test set that were manually selected. To this end scripts to select the data were written, as well as scripts to analyze and preprocess these data sets. However, it turned out that these test/train sets had different correlations between the predictors, which would mean that they could not be used to test which ML algorithms could model TW best. We therefore chose to select a 6h train and 1.5h test subset from a larger dataset, so that correlations in test/train sets would be similar.  The scripts in this section were thus not used for the 2nd modeling. However, in order to have a complete README file they are described here as well. 
 
 
 ------ Scripts for building/analyzing the datasets for the 2nd and 3rd round of modelling -----------------------------------------
