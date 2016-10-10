@@ -2,7 +2,7 @@
 title: "Data Preprocessing including dummy variables"
 author: "Eva Kleingeld"
 date: "October 2, 2016"
-output: html_document
+output: pdf_document
 ---
 
 
@@ -124,7 +124,7 @@ corrplot(corTest, method = "circle")
 
 # PreProcessing
 
-Here we remove variables with zero variance ("zv"), perform a BoxCox transform to resolve skewness ("BoxCOx"), center and scale the data ("center", "scale") and perform a principal component analysis ("pca"). 
+Here we remove variables with zero variance ("zv"), perform a BoxCox transform to resolve skewness ("BoxCox"), center and scale the data ("center", "scale") and perform a principal component analysis ("pca"). 
 
 **Note: We here choose to transform the test set. This is because in the train set the correlation between TL and TD is 1. Also, the test set is much smaller than the train set, so the code runs faster. Normally you build Xtrans with the train set and then transform both the train and test set with the same Xtrans.**
 

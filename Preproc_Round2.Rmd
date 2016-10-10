@@ -11,11 +11,11 @@ In this script the test and train set are:
 * Altitude is heightened by 10m
 * Temperatures are put in Kelvin instead of Celsius
 * Data is preprocessed using the preProcess function, the transformations that are applied are:
-                                + Zero variance removal
-                                + BoxCox transform
-                                + centering
-                                + scaling
-                                + principal component analysis
++ Zero variance removal
++ BoxCox transform
++ centering
++ scaling
++ principal component analysis
 * Next, some optional code is included for analyzing the remaining PC's 
 * Finally, the resulting predictor sets and target variables are saved to .Rdata files
 
@@ -96,11 +96,9 @@ Test_set <- Test_set[ ,!(names(Test_set) %in% To_drop)]
 # Merge the test set and the environmental dataset
 Test_set <-merge(Test_set,Env_Data,by.x=c("LOCATION","SENSOR"),by.y=c("MISD","SENSOR"))
 
-
 # Split into input (predictors) and output (target variable)
 # Output
 Target_Test <- Test_set$TEMP
-
 
 # Drop LOCATION/SENSOR/TIMESTAMP and TEMP
 To_drop <- c("LOCATION", "SENSOR", "TIMESTAMP", "TEMP")
@@ -116,20 +114,22 @@ Predictors_Test <- Test_set
 Add 10m to all ALT values to ensure there are no negative heights. 
 Change all temperatures from celsius to kelvin.
 
+**Note: here we also change the target variables to kelvin, even though this is probably not necessary**   
+
 ```{r}
 # Add 10m to ALT for train and test data
-Predictors_Train$ALT <- Predictors_Train$ALT + 10
-Predictors_Test$ALT <- Predictors_Test$ALT + 10
+Train_set$ALT <- Train_set$ALT + 10
+Test_set$ALT <- Test_set$ALT + 10
 
 # Convert TD, TL in Predictors to Kelvin
 
 # For train
-Predictors_Train$TL <- Predictors_Train$TL + 273.15
-Predictors_Train$TD <- Predictors_Train$TL + 273.15
+Train_set$TL <- Train_set$TL + 273.15
+Train_set$TD <- Train_set$TL + 273.15
 
 # For test
-Predictors_Test$TL <- Predictors_Test$TL + 273.15
-Predictors_Test$TD <- Predictors_Test$TD + 273.15
+Test_set$TL <- Test_set$TL + 273.15
+Test_set$TD <- Test_set$TD + 273.15
 
 # Convert target variables to Kelvin
 Target_Train <- Target_Train + 273.15
@@ -140,19 +140,13 @@ Target_Test <- Target_Test + 273.15
 # save(Predictors_Test, file = "Predictors_Test_6h.Rda")
 ```
 
-# Some analysis of the raw data
-```{r}
-library(corrplot)
-
-corTest <- cor(Predictors_Test, use = "complete.obs")
-corrplot(corTest, method = "circle")
-
-```
-
-
 # PreProcessing
 
 Here we remove variables with zero variance ("zv"), perform a BoxCox transform to resolve skewness ("BoxCox"), center and scale the data ("center", "scale") and perform a principal component analysis ("pca"). 
+
+We remove zero variance predictors because these predictors cannot help the ML algorithms predict the target variable. Centering and scaling the data will speed up the model building process. A pca will reduce the number of predictors and will resolve multicollinearity, thereby speeding up the model building process. In order to perform a pca data needs to be centered and scaled (which we have already done) and the data much not be skewed. With a BoxCox transform we resolve skewness. 
+
+Dummy variables are included in the pca.
 
 **Note: We here choose to transform the test set. This is because in the train set the correlation between TL and TD is 1. Also, the test set is much smaller than the train set, so the code runs faster. Normally you build Xtrans with the train set and then transform both the train and test set with the same Xtrans.**
 
