@@ -136,8 +136,8 @@ Target_Train <- Target_Train + 273.15
 Target_Test <- Target_Test + 273.15
 
 # Save these sets of predictors 
-# save(Predictors_Train, file = "Predictors_Train_6h.Rda")
-# save(Predictors_Test, file = "Predictors_Test_6h.Rda")
+# save(Train_set, file = "Train_set_unProcessed.Rda")
+# save(Test_set, file = "Test_set_unProcessed.Rda")
 ```
 
 # PreProcessing
@@ -148,27 +148,40 @@ We remove zero variance predictors because these predictors cannot help the ML a
 
 Dummy variables are included in the pca.
 
-**Note: We here choose to transform the test set. This is because in the train set the correlation between TL and TD is 1. Also, the test set is much smaller than the train set, so the code runs faster. Normally you build Xtrans with the train set and then transform both the train and test set with the same Xtrans.**
-
 ```{r}
 library(caret)
-xTrans <- preProcess(Predictors_Test, method = c("zv", "BoxCox",  "center", "scale", "pca"),
+
+# Build the object containing the transform information
+xTrans <- preProcess(Train_set, method = c("zv", "BoxCox",  "center", "scale", "pca"),
                      na.remove = TRUE)
 
+# Summary of transform information
 print(xTrans)
-
-Predictors_Test <- predict(xTrans, Predictors_Test)
 
 # Number of PC's 
 xTrans$numComp
+
 # BoxCox transformed predictors
 xTrans$method$BoxCox
+
+
+# Transform train set
+Train_set <- predict(xTrans, Train_set)
+
+# Transform test set
+Test_set <- predict(xTrans, Test_set)
+
 ```
 
-The total number of principal components is 'r xTrans$numComp' , whereas the number of predictors was 33 before the transformation. As the summary of xTrans shows, all predictors were centered, scaled and pca transformed. Only 'r length(xTrans$method$BoxCox)' predictors were BoxCox transformed, namely: 'r xTrans$method$BoxCox'. 
+The total number of principal components is 'r xTrans$numComp'. As the summary of xTrans shows, all predictors were centered, scaled and pca transformed. Only 'r length(xTrans$method$BoxCox)' predictors were BoxCox transformed, namely: 'r xTrans$method$BoxCox'. 
 
 
-Next, we look at the variable loadings. 
+# Analysis of PC's
+
+This section of the code contains an analysis of the PC's in the test and train sets. 
+If you wish to cut down the run time of the script this section of the code can be commented/not run without changing the test/train sets. 
+
+First, we look at the variable loadings. 
 The rotation column of the xTrans object stores the variable loadings. 
 Each principal component after the PCA is a linear combination of the original predictors.The coefficient for each predictor is called loading. A variable loading close to 0 indicates that a predictor did not contribute much to the principal component
 
@@ -183,53 +196,83 @@ Important to note!!! By applying the method to the PC's that you get after trans
 ```{r}
 # Scree plot of the explained variance
 
-# Get the standard deviation per PC from the transformation object
-PC_stdev <- apply(Predictors_Test, 2, sd, na.rm = TRUE)
+# First, we build a function that makes scree plots of the PC's
+Plot_Scree <-function(The_set){
+  
+  # Get the standard deviation per PC 
+  PC_stdev <- apply(The_set, 2, sd, na.rm = TRUE)
+  
+  # Get the variance per PC by taking the square of the standard deviation per PC
+  PC_var <- PC_stdev^2
+  
+  # Calculate proportion of total variance explained per PC by dividing PC_var by the total variance explained
+  PC_prop_var <- PC_var/(sum(PC_var))
+  
+  # Make the scree plot
+  plot(y = PC_prop_var, x = 1:length(The_set), type = "b", xlab = "Principal Components", ylab = "Proportion of variance explained")
+}
 
-# Get the variance per PC by taking the square of the standard deviation per PC
-PC_var <- PC_stdev^2
+# Make a scree plot of the train set PC's 
+Plot_Scree(Train_set)
 
-# Calculate proportion of total variance explained per PC by dividing PC_var by the total variance explained
-PC_prop_var <- PC_var/(sum(PC_var))
+# Make a scree plot of the test set PC's 
+Plot_Scree(Test_set)
 
-# scree plot
-plot(y = PC_prop_var, x = 1:length(Predictors_Test), type = "b", xlab = "Principal Components", ylab = "Proportion of variance explained")
 
 ```
 
-To get an idea of what these PC's look like we plot a few of them in a pairwise plot (Also called a scatterplot matrix).
+To get an idea of what these PC's look like you can plot them in a pairwise plot (Also called a scatterplot matrix).
 
 The PC's show that outliers may throw off your pca. 
 For more information on this topic, see: 
 [link](http://www.math.umn.edu/~lerman/Meetings/SIAM2012_Sujay.pdf) **Note: Do we need to solve this? (Probably yes, but...)** 
 
-The pairswise plots show that PC's higher than PC5 tend to have outliers. 
-PC16-PC20 seem to have much issues. 
+Here we make scatterplot matrices for the train set, but the same can be done for the test set.
 
-**Note: Code takes a while to run**
+**Note: Code takes a while to run, so is left commented. Uncomment to plot.**
 
 ```{r}
+# Scatterplot matrices for the train set, 5x5 plots
+#pairs(Train_set[, 1:5])
+#pairs(Train_set[ , 6:10]) 
+#pairs(Train_set[ , 11:15])
+#pairs(Train_set[ , 16:20])
+#pairs(Train_set[ , 20:25])
 
-pairs(Predictors_Test[, 1:5])
-pairs(Predictors_Test[ , 6:10]) 
-pairs(Predictors_Test[ , 11:15])
-pairs(Predictors_Test[ , 16:20])
-pairs(Predictors_Test[ , 20:25])
-
-
+# The large plots stored in the plotting device can slow down your PC.
+# In order to empty the plotting device type: dev.off()
 ```
 
-Next, to check how the pca went, we again make a correlation plot. 
-If the pca went well, the PC's should not be correlated. (: The pca went well)
+Next, to check if the pca indeed removed multicollinearity a correlation plot is made. 
+If the pca went well the PC's should not be correlated. 
 
 ```{r}
-corTest_2 <- cor(Predictors_Test, use = "complete.obs")
-corrplot(corTest_2, method = "circle")
+library(corrplot)
+
+# Correlation plot for the train set
+corTrain_1 <- cor(Train_set, use = "complete.obs")
+corrplot(corTrain_1, method = "circle")
+
+# Correlation plot for the test set
+corTest_1 <- cor(Test_set, use = "complete.obs")
+corrplot(corTest_1, method = "circle")
 
 ``` 
-Next, we test the zero variance
+
+Next, we test for (near) zero variance in the test/train sets
 ```{r}
-NearZero_Test <- nearZeroVar(Predictors_Test, names = TRUE, saveMetrics = TRUE)
+# Test for (near) zero variance in the train set
+NearZero_Train <- nearZeroVar(Train_set, names = TRUE, saveMetrics = TRUE)
+head(NearZero_Train)
+
+# As expected, the are no zero variance variables, because those are removed during preProcessing
+any(NearZero_Train$zeroVar)
+# After pca there are also near zero variables
+any(NearZero_Train$nzv)
+
+
+# Test for (near) zero variance in the test set
+NearZero_Test <- nearZeroVar(Test_set, names = TRUE, saveMetrics = TRUE)
 head(NearZero_Test)
 
 # As expected, the are no zero variance variables, because those are removed during preProcessing
@@ -237,8 +280,24 @@ any(NearZero_Test$zeroVar)
 # After pca there are also near zero variables
 any(NearZero_Test$nzv)
 
-
-
-
 ```
 
+# Final step: Save sets
+
+To use these sets in the scripts which build TW models we need to save the sets. 
+
+```{r}
+# The sets are saved to your working directory as Rdata files
+# Your current working directory is:
+getwd()
+
+# Save the test/train predictor sets 
+
+save(Train_set, file = "Train_set_R2.Rda")
+save(Test_set, file = "Test_set_R2.Rda")
+
+# Save the corresponding target variables
+save(Target_Train, file = "Target_train_R2.Rda")
+save(Target_Test, file = "Target_test_R2.Rda")
+
+```
