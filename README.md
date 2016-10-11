@@ -69,21 +69,42 @@ This code conatins a level plot indictaing how many trees need to be built to re
 Part 10, the final part of the script, contains the code for the Support Vector Machine. This code follows the standard setup. 
 
 ------ Scripts for building/analyzing manually selected subsets of data of 6h/1.5h -----------------------------------------
-In the second round of modeling we first wanted to build models with a 6h train and 1.5h test set that were manually selected. To this end scripts to select the data were written, as well as scripts to analyze and preprocess these data sets. However, it turned out that these test/train sets had different correlations between the predictors, which would mean that they could not be used to test which ML algorithms could model TW best. We therefore chose to select a 6h train and 1.5h test subset from a larger dataset, so that correlations in test/train sets would be similar.  The scripts in this section were thus not used for the 2nd modeling. However, in order to have a complete README file they are described here as well. 
-
-
------- Scripts for building/analyzing the datasets for the 2nd and 3rd round of modelling -----------------------------------------
-Met_conditions.Rmd - In this script the daily values of the meteorological measurements at the Bilt are analysed. Several columns are added to the data: Freezing/Stralingsdag/Precip/WindD columns. Based on the data analysis + columns several days are selected as input for the 3rd round of ML modelling. 
-
-Analyze_Days.R - In this script the hourly data of the Bilt station is analyzed. Plots of the diurnal temperature and dew point temperature are made for each of the days that were selected for the 3rd set of model runs. Ice formation/Snowfall/Cloud cover and rainfall are also investigated. A time interval of 6 hours is selected for the 2nd set of model runs.  
-
-Select_Days.R - This is the script in which the GMS data for the 3rd model is put into a dataframe with the right input format for the ML scripts. Six days are selected. The data is merged with the filtered data so that a quality column is included which indicates wether data is "suspect" or "valid". 
+In the second round of modeling we first wanted to build models with a 6h train and 1.5h test set that were manually selected. To this end scripts to select the data were written, as well as scripts to analyze and preprocess these data sets. However, it turned out that these test/train sets had different correlations between the predictors, which would mean that they could not be used to test which ML algorithms could model TW best. We therefore chose to select a 6h train and 1.5h test subset from a larger dataset, so that correlations in test/train sets would be similar, see the section below. The scripts in this section were thus not used for the 2nd modeling round. However, in order to have a complete README file they are described here as well. 
 
 Select_6h.R - This is the script in which the data for the selected 6 hours for the 2nd model building step is put into a dataframe with the right input format for the ML scripts. The data is merged with the filtered data so that a quality column is included which indicates wether data is "suspect" or "valid". 
 
+Select_1.5h.R - In this script the test dataset for the 2nd round of model building is built. he data is merged with the filtered data so that a quality column is included which indicates wether data is "suspect" or "valid". 
+
+Build_6h_dataset
+
+Round2_Data_and_PreProcess
+
+Data_PreProc_DummyV
+
+
+
+------ Scripts for building/analyzing the datasets for the 2nd round of modelling -----------------------------------------
+Met_conditions.Rmd - In this script the daily values of the meteorological measurements at the Bilt are analysed. Several columns are added to the data: Freezing/Stralingsdag/Precip/WindD columns. Based on the data analysis + columns several days are selected. 
+
+Analyze_Days.R - In this script the hourly data of the Bilt station is analyzed. Plots of the diurnal temperature and dew point temperature are made for each of the days that were selectedin the Metconditions script. Ice formation/Snowfall/Cloud cover and rainfall are also investigated. 
+
+Select_Days.R - This is the script in which the GMS data is put into a dataframe with the right input format for the ML scripts. Six days are selected, based on the Metconditions and Analyze days scripts. The data is merged with the filtered data so that a quality column is included which indicates wether data is "suspect" or "valid". 
+
 Analyze_GMS_6Days.R - This script contains code to analyze the distribution of road temperature (TW) data in the GMS data set. It includes a function to plot the diurnal temperature for each station, per sensor, per day. The script also contains code for a simple histogram of TW, boxplots of the suspect and valid data and boxplots of the temperature per station, per day. 
 
-Select_1.5h.R - In this script the test dataset for the 2nd round of model building is built. he data is merged with the filtered data so that a quality column is included which indicates wether data is "suspect" or "valid". 
+Build_GMS_Round2 - In this script a test/train GMS set is selected from the 6 days that were selected in the Select_Days.R script. We do this with the createDataPartition function from the caret package. The distribution of data in the test/train sets is analyzed by means of histograms and correlation plots. Finally, the data is saved to a .Rdata file at the end of the script. 
+
+
+Preproc_Round2 - Here the test/train sets built in the Build_GMS_Round2 script are subsetted so that they only include valid data. Next, the valid data is split into test predictors/target variables and train predictors/target variables. Altitude is heightened by 10m and temperatures are put in Kelvin instead of Celsius. Data is preprocessed using the preProcess function, the transformations that are applied are:
++ Zero variance removal
++ BoxCox transform
++ centering
++ scaling
++ principal component analysis
+Some optional code is included for analyzing the remaining PC's. Finally, the resulting predictor sets and target variables are saved to .Rdata files
+
+
+
 
 
 -------- Scripts for testing functions that are relevant to the project -------------------------------------------------------
@@ -93,3 +114,10 @@ Test_merge_join.R - Here we test wether the merge or the join function (dplyr pa
 Test_Time_Slice.R - In this script the time slice function from the caret package is tested. This script was copy pasted from a Stackoverflow answer. (Stackoverflow post: http://stackoverflow.com/questions/24758218/time-series-data-spliting-and-model-evaluation)
 
 Test_CreateDataPartition.R - This script is used to test how the create data partition script from the caret package works. First, the function is used to build train and test sets. Next, histograms are plotted (side by side) of the original TW data and of the train/test TW data. These histograms show that all the data sets hav approximately the same distribution. Next, the distributions of other variables are checked in the same manner. This is done within a for loop. Finally, the relative proportion of sensors per set is tested by means of a prop.table.    
+
+Test_SavePlotLoop.R - Script that tests how you can best save a plot to a list within a loop. Makes use of the economics dataset. Tests for loop with basic plotting/qplot/ggplot as well as apply and lapply with qplot. The best option is to use ggplot + for loop, see script for more details. 
+
+Test_PreProcess.Rmd - This script is used to test how the preProcess function from the caret package transforms a set of predictors when you apply several different preprocessing methods. To test this we make use of the manually selected 6h GMS data set + environmental data. The distribution of the data before and after transformation is analyzed by means of histograms and correlation plots. Dummy variables are not included in the analysis. 
+
+-------- Presentations/demo scripts -------------------------------------------------------
+ML_project/Presentatie_RWS.Rmd
