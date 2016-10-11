@@ -71,15 +71,15 @@ Part 10, the final part of the script, contains the code for the Support Vector 
 ------ Scripts for building/analyzing manually selected subsets of data of 6h/1.5h -----------------------------------------
 In the second round of modeling we first wanted to build models with a 6h train and 1.5h test set that were manually selected. To this end scripts to select the data were written, as well as scripts to analyze and preprocess these data sets. However, it turned out that these test/train sets had different correlations between the predictors, which would mean that they could not be used to test which ML algorithms could model TW best. We therefore chose to select a 6h train and 1.5h test subset from a larger dataset, so that correlations in test/train sets would be similar, see the section below. The scripts in this section were thus not used for the 2nd modeling round. However, in order to have a complete README file they are described here as well. 
 
-Select_6h.R - This is the script in which the data for the selected 6 hours for the 2nd model building step is put into a dataframe with the right input format for the ML scripts. The data is merged with the filtered data so that a quality column is included which indicates wether data is "suspect" or "valid". 
+Select_6h.R - This is the script in which the data for the selected 6 hours is put into a dataframe with the right input format for the ML scripts. The data is merged with the filtered data so that a quality column is included which indicates wether data is "suspect" or "valid". 
 
-Select_1.5h.R - In this script the test dataset for the 2nd round of model building is built. he data is merged with the filtered data so that a quality column is included which indicates wether data is "suspect" or "valid". 
+Select_1.5h.R - In this script a test datasetof 1.5 hours is built. The data is merged with the filtered data so that a quality column is included which indicates wether data is "suspect" or "valid". 
 
-Build_6h_dataset
+Build_6h_dataset - In this script a start is made with the preProcessing. First, the 6h train set which was built in Select_6h.R and the 1.5 hour test set which was built in Select_1.5h.R are merged with the environmental data and only valid data is kept. Next, near zero variables are counted for train and the train set is preprocessed. After analysis it became apparent that somehow the preprocessing was not going to plan and the preprocessing was analyzed step by step in the Test_PreProcess.Rmd script, the Round2_Data_and_PreProcess. Dummy variables are not included in the preprocessing.
 
-Round2_Data_and_PreProcess
+Round2_Data_and_PreProcess - This script does the same as the Build_6h_dataset script, but it contains more analysis of the data in between preProcessing steps. Also, the data is transformed to make sure a BoxCox can be performed. Dummy variables are not included in the preprocessing. 
 
-Data_PreProc_DummyV
+Data_PreProc_DummyV - This script is very similar to the Round2_Data_and_PreProcess script. However, this script also includes the dummy variables in the transformation. It contains yet more analysis code, as well as an extensive explanation of each of the modelling steps. 
 
 
 
@@ -101,6 +101,7 @@ Preproc_Round2 - Here the test/train sets built in the Build_GMS_Round2 script a
 + centering
 + scaling
 + principal component analysis
+
 Some optional code is included for analyzing the remaining PC's. Finally, the resulting predictor sets and target variables are saved to .Rdata files
 
 
@@ -120,4 +121,5 @@ Test_SavePlotLoop.R - Script that tests how you can best save a plot to a list w
 Test_PreProcess.Rmd - This script is used to test how the preProcess function from the caret package transforms a set of predictors when you apply several different preprocessing methods. To test this we make use of the manually selected 6h GMS data set + environmental data. The distribution of the data before and after transformation is analyzed by means of histograms and correlation plots. Dummy variables are not included in the analysis. 
 
 -------- Presentations/demo scripts -------------------------------------------------------
-ML_project/Presentatie_RWS.Rmd
+
+ML_project/Presentatie_RWS.Rmd - This script contains code to demonstrate how the ML algorithms build TW models. Support vector machines, decision trees and neural networks are demonstrated. Data pre-processing is also demonstrated. 
