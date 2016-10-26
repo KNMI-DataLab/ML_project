@@ -80,14 +80,27 @@ library(dplyr)
 Six_Days_3 <- right_join(x = Six_Days, y = Data_filtered, by = c("LOCATION", "TIMESTAMP", "SENSOR", "TEMP"))
 
 
-# Add an extra column with time as integer (unix time: nr of seconds since Jan 01 1970 UTC)
-Six_Days_3$Unix_Time <- as.numeric(Six_Days_3$TIMESTAMP)
+#Add in a Day of Year (DOY) and Hour of Day (HOD) column
+library(lubridate)
+
+# Build a DOY column
+DOY_Days <-  as.numeric(strftime(Six_Days_3$TIMESTAMP, format = "%j"))
+
+# The selected days run from, for example 24-11-09 01:00:00 until 01:00:00 25-11-09 which means that there are 12 unique DOY values for six days of data
+length(unique(DOY_Days)) 
+
+# Build a HOD column
+HOD_Days <- hour(Six_Days_3$TIMESTAMP) + minute(Six_Days_3$TIMESTAMP)/60
+
+# Add the columns to the start of the Six_Days_3 data frame
+Six_Days_3 <- cbind(DOY_Days, HOD_Days, Six_Days_3)
+
 
 # Store the GMS six days data frame as .csv
-write.csv(x = Six_Days_3, file = "/usr/people/kleingel/Projects/MLProject/Six_Days.csv")
+write.csv(x = Six_Days_3, file = "/run/media/kleingel/Lexar/KNMI/Six_Days.csv")
 
 # Store the GMS six days data frame as R data
-save(x = Six_Days_3, file = "/usr/people/kleingel/Projects/MLProject/Six_Days.Rda")
+save(x = Six_Days_3, file = "/run/media/kleingel/Lexar/KNMI/Six_Days.Rda")
 
 
 
