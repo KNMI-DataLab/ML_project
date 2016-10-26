@@ -31,34 +31,6 @@ rm(Six_Days_3)
 str(The_Days)
 ```
 
-Add in a Day of Year (DOY) and Hour of Day (HOD) column instead of the POSIXct column. 
-
-**This code should be in the Select_Days.R script and should replace the Unix_Time code. However, as I currently have no access to the 'raw' and filtered GMS data the code is placed in this script.**
-
-**PAY ATTENTION: If you move the code to build HOD/DOY the columns which are removed will change!!**
-
-```{r}
-library(lubridate)
-
-# Build a DOY column
-DOY_Days <-  as.numeric(strftime(The_Days$TIMESTAMP, format = "%j"))
-
-# The selected days run from, for example 24-11-09 01:00:00 until 01:00:00 25-11-09 which means that there are 12 unique DOY values for six days of data
-length(unique(DOY_Days)) 
-
-# Build a HOD column
-HOD_Days <- hour(The_Days$TIMESTAMP) + minute(The_Days$TIMESTAMP)/60
-
-# Add the columns to the start of the The_Days data frame
-The_Days <- cbind(DOY_Days, HOD_Days, The_Days)
-
-# Remove Unix_Time
-To_drop <- c("Unix_Time")
-The_Days <- The_Days[ ,!(names(The_Days) %in% To_drop)]
-
-
-```
-
 Remove NA values in TL and TD
 
 ```{r}
@@ -160,10 +132,10 @@ Finally, we need to save the test/train sets as .Rda files, so that we can read 
 
 ```{r}
 # Save train
-save(Train_data, file = "F:/KNMI/Train_data_R2.Rda")
-
+# save(Train_data, file = "F:/KNMI/Train_data_R2.Rda")
+save(Train_data, file = "/run/media/kleingel/Lexar/KNMI/Train_data_R2.Rda")
 # Save test
-save(Test_data, file = "F:/KNMI/Test_data_R2.Rda")
-
+#save(Test_data, file = "F:/KNMI/Test_data_R2.Rda")
+save(Test_data, file = "/run/media/kleingel/Lexar/KNMI/Test_data_R2.Rda")
 ```
 
