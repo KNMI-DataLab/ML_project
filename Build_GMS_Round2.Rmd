@@ -20,7 +20,8 @@ rm(list=ls())
 # Install packages if needed
 
 # Read in the 6 Days data set
-load("F:/KNMI/Six_Days.Rda")
+#load("F:/KNMI/Six_Days.Rda")
+load("/run/media/kleingel/Lexar/KNMI/Six_Days.Rda")
 
 # Rename dataframe
 The_Days <- Six_Days_3
@@ -55,6 +56,19 @@ The_Days <- cbind(DOY_Days, HOD_Days, The_Days)
 To_drop <- c("Unix_Time")
 The_Days <- The_Days[ ,!(names(The_Days) %in% To_drop)]
 
+
+```
+
+Remove NA values in TL and TD
+
+```{r}
+#How many NA values in all data frame columns?
+The_NAs <- apply(The_Days,2, is.na)
+apply(The_NAs, 2, sum)
+
+# As you can see, only the TL and TD columns contain NA's 
+# Next, we remove all rows which contain TL/TD NA values
+The_Days <- na.omit(The_Days)
 
 ```
 
