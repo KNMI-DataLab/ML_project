@@ -4,7 +4,7 @@ author: "Eva Kleingeld"
 date: "August 12, 2016"
 output: pdf_document
 ---
-
+ 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -74,8 +74,19 @@ for(i in bad_stations){
 ggplot() + geom_bar(data = Env_Data_2, aes(x = OMSCHRIJVI))
 
 ## We decided to add 'Moerig op zand' to the 'Zand' category
-Env_Data_2$OMSCHRIJVI[Env_Data_2$OMSCHRIJVI == "Moerig op zand"] <- "Zand"
+Env_Data_2$OMSCHRIJVI[Env_Data_2$OMSCHRIJVI == "Moerig op zand"] <- "Veen"
 any(Env_Data_2$OMSCHRIJVI == "Moerig op zand")
+
+## We also merge the "Lichte klei" (: Light clay) and "Zware klei" (:Heavy Clay) categories to Klei (: Clay)
+library(plyr)
+
+Env_Data_2$OMSCHRIJVI <- revalue(Env_Data_2$OMSCHRIJVI, c("Lichte klei" = "Klei"))
+Env_Data_2$OMSCHRIJVI[Env_Data_2$OMSCHRIJVI == "Zware klei"] <- "Klei"
+
+## Next, we merge the "Leem" (:Silt), "Lichte zavel" and "Zware zavel" (:sand + clay) to "Zavel"
+Env_Data_2$OMSCHRIJVI <- revalue(Env_Data_2$OMSCHRIJVI, c("Leem" = "Zavel"))
+Env_Data_2$OMSCHRIJVI[Env_Data_2$OMSCHRIJVI == "Lichte zavel"] <- "Zavel"
+Env_Data_2$OMSCHRIJVI[Env_Data_2$OMSCHRIJVI == "Zware zavel"] <- "Zavel"
 
 ## Splitting the CODE column into 6 columns
 Env_Data_2$CODE <- as.character(Env_Data_2$CODE)
@@ -114,7 +125,6 @@ colnames(Env_Data_4)[1:13] <- c("MISD", "LAT", "LON", "ALT", "Bebouwing", "Leem"
 # Make the columns Afrit/Oprit and Spitsstrook integers instead of factors
 Env_Data_4[ , c(28:30)] <- sapply(Env_Data_4[ , c(28:30)], as.character)
 Env_Data_4[ , c(28:30)] <- sapply(Env_Data_4[ , c(28:30)], as.integer)
-
 
 ## As a final step, save the environmental dataset to the computer for later use 
 # Store as .csv
