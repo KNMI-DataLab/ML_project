@@ -3,7 +3,7 @@ title: "Environmental_Data"
 author: "Eva Kleingeld"
 date: "August 12, 2016"
 output: pdf_document
----
+--- 
  
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
