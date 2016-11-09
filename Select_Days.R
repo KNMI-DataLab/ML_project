@@ -95,6 +95,25 @@ HOD_Days <- hour(Six_Days_3$TIMESTAMP) + minute(Six_Days_3$TIMESTAMP)/60
 # Add the columns to the start of the Six_Days_3 data frame
 Six_Days_3 <- cbind(DOY_Days, HOD_Days, Six_Days_3)
 
+# Check if there are any 'bad' stations 
+# (either test stations from RWS or stations which have been moved) in the dataframe.
+
+bad_stations <- c("108", "422", "818", "1015", "1501", "1502", "1503")
+
+for(i in bad_stations){
+  print(i)
+  print(any(Six_Days_3$LOCATION == i))
+}
+
+# Remove the 'bad' stations
+Six_Days_3 <- Six_Days_3[!(Six_Days_3$LOCATION == 108|
+                           Six_Days_3$LOCATION == 422|
+                           Six_Days_3$LOCATION == 818|
+                           Six_Days_3$LOCATION == 1015|
+                           Six_Days_3$LOCATION == 1501|
+                           Six_Days_3$LOCATION == 1502|
+                           Six_Days_3$LOCATION == 1503),]
+
 
 # Store the GMS six days data frame as .csv
 write.csv(x = Six_Days_3, file = "/run/media/kleingel/Lexar/KNMI/Six_Days.csv")
