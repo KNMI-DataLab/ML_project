@@ -20,8 +20,8 @@ rm(list=ls())
 # Install packages if needed
 
 # Read in the 6 Days data set
-load("F:/KNMI/Six_Days.Rda")
-#load("/run/media/kleingel/Lexar/KNMI/Six_Days.Rda")
+#load("F:/KNMI/Six_Days.Rda")
+load("/run/media/kleingel/Lexar/KNMI/Six_Days.Rda")
 
 # Rename dataframe
 The_Days <- Six_Days_3
@@ -41,21 +41,6 @@ apply(The_NAs, 2, sum)
 # As you can see, only the TL and TD columns contain NA's 
 # Next, we remove all rows which contain TL/TD NA values
 The_Days <- na.omit(The_Days)
-
-```
-
-Check if there are any 'bad' stations (either test stations from RWS or stations which have been moved) in the dataframe.
-
-REMOVE THESE STATIONS IN THE SELECT_DAYS SCRIPT!
-
-```{r}
-bad_stations <- c("108", "422", "818", "1015", "1501", "1502", "1503")
-
-for(i in bad_stations){
-    print(i)
-    print(any(The_Days$LOCATION == i))
-}
-
 
 ```
 
