@@ -20,9 +20,14 @@ rm(list=ls())
 ```{r}
 
 ## First, read in all the environmental data sets 
-Soil_type <- read.csv("F:/KNMI/Grondsoortenkaart_2006.txt")
-Height <- read.csv("F:/KNMI/Height_divagis.txt")
-MetaData_GMScoding<- read.csv("F:/KNMI/metadataGMScoding.csv", header = TRUE)
+#Soil_type <- read.csv("F:/KNMI/Grondsoortenkaart_2006.txt")
+Soil_type <- read.csv("/run/media/kleingel/Lexar/KNMI/Grondsoortenkaart_2006.txt")
+
+#Height <- read.csv("F:/KNMI/Height_divagis.txt")
+Height <- read.csv("/run/media/kleingel/Lexar/KNMI/Height_divagis.txt")
+
+#MetaData_GMScoding<- read.csv("F:/KNMI/metadataGMScoding.csv", header = TRUE)
+MetaData_GMScoding<- read.csv("/run/media/kleingel/Lexar/KNMI/metadataGMScoding.csv", header = TRUE)
 
 ## Soil_type: Drop columns you don't need
 Keep_Soil <- c("MSID", "LON", "LAT", "OMSCHRIJVI")
@@ -123,8 +128,25 @@ colnames(Env_Data_4)[1:10] <- c("MISD", "LAT", "LON", "ALT", "Bebouwing", "Zavel
 ##Env_Data_4 <- Env_Data_4[ ,-grep("NA$", colnames(Env_Data_4))]
 
 # Make the columns Afrit/Oprit and Spitsstrook integers instead of factors
-Env_Data_4[ , c(28:30)] <- sapply(Env_Data_4[ , c(28:30)], as.character)
-Env_Data_4[ , c(28:30)] <- sapply(Env_Data_4[ , c(28:30)], as.integer)
+Env_Data_4[ , c(25:27)] <- sapply(Env_Data_4[ , c(25:27)], as.character)
+Env_Data_4[ , c(25:27)] <- sapply(Env_Data_4[ , c(25:27)], as.integer)
+
+## How frequently do certain rijstrook values appear?
+table(Env_Data_3$Rijbaan)
+table(Env_Data_3$Rijstrook)
+table(Env_Data_3$Spitsstrook)
+table(Env_Data_3$Oprit)
+table(Env_Data_3$Afrit)
+table(Env_Data_3$Brug_of_Viaduct)
+
+
+# Plot correlation
+library(corrplot)
+
+testCorEnv <- Env_Data_4[, -c(1, 11) ]
+
+corEnv <- cor(testCorEnv, use = "complete.obs")
+corrplot(corEnv)
 
 ## As a final step, save the environmental dataset to the computer for later use 
 # Store as .csv
