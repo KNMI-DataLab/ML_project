@@ -20,14 +20,19 @@ rm(list=ls())
 ```{r}
 
 ## First, read in all the environmental data sets 
-Soil_type <- read.csv("F:/KNMI/Grondsoortenkaart_2006.txt")
+#Soil_type <- read.csv("F:/KNMI/Grondsoortenkaart_2006.txt")
 #Soil_type <- read.csv("/run/media/kleingel/Lexar/KNMI/Grondsoortenkaart_2006.txt")
+Soil_type <- read.csv("/data/project/GMS/data/auxcillary_data/Ancillary_point_data/Grondsoortenkaart_2006.txt")
 
-Height <- read.csv("F:/KNMI/Height_divagis.txt")
+
+
+#Height <- read.csv("F:/KNMI/Height_divagis.txt")
 #Height <- read.csv("/run/media/kleingel/Lexar/KNMI/Height_divagis.txt")
+Height <- read.csv("/data/project/GMS/data/auxcillary_data/Ancillary_point_data/Height_divagis.txt")
 
-MetaData_GMScoding<- read.csv("F:/KNMI/metadataGMScoding.csv", header = TRUE)
+#MetaData_GMScoding<- read.csv("F:/KNMI/metadataGMScoding.csv", header = TRUE)
 #MetaData_GMScoding<- read.csv("/run/media/kleingel/Lexar/KNMI/metadataGMScoding.csv", header = TRUE)
+MetaData_GMScoding<- read.csv("/data/project/GMS/data/auxcillary_data/MetadataGMS/metadataGMScoding.csv", header = TRUE)
 
 ## Soil_type: Drop columns you don't need
 Keep_Soil <- c("MSID", "LON", "LAT", "OMSCHRIJVI")
@@ -146,10 +151,13 @@ table(Env_Data_3$Brug_of_Viaduct)
 
 ## As a final step, save the environmental dataset to the computer for later use 
 # Store as .csv
-write.csv(x = Env_Data_4, file = "F:/KNMI/Env_Data.csv")
+#write.csv(x = Env_Data_4, file = "F:/KNMI/Env_Data.csv")
+write.csv(x = Env_Data_4, file = "/usr/people/kleingel/Projects/MLProject/Env_Data.csv")
 
 # Store as data frame
-save(x = Env_Data_4, file = "F:/KNMI/Env_Data.Rda")
+#save(x = Env_Data_4, file = "F:/KNMI/Env_Data.Rda")
+save(x = Env_Data_4, file = "/usr/people/kleingel/Projects/MLProject/Env_Data.Rda")
+
 ```
 
 ## Optional code
