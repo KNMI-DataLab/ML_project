@@ -47,16 +47,21 @@ load_obj <- function(f)
 }
 
 # Read in the environmental dataset
-Env_Data <- load_obj("F:/KNMI/MLProject/Env_Data.Rda")
+#Env_Data <- load_obj("F:/KNMI/MLProject/Env_Data.Rda")
 #Env_Data <- load_obj("/run/media/kleingel/Lexar/KNMI/Env_Data.Rda")
+Env_Data <- load_obj("/usr/people/kleingel/Projects/MLProject/Env_Data.Rda")
 
 # Read in the train set
-Train_set <- load_obj("F:/KNMI/Train_data_R2.Rda")
+#Train_set <- load_obj("F:/KNMI/Train_data_R2.Rda")
 #Train_set <- load_obj("/run/media/kleingel/Lexar/KNMI/Train_data_R2.Rda")
+Train_set <- load_obj("/usr/people/kleingel/Projects/MLProject/Train_data_R2.Rda")
+
 
 # Read in the test set
-Test_set <- load_obj("F:/KNMI/Test_data_R2.Rda")
+#Test_set <- load_obj("F:/KNMI/Test_data_R2.Rda")
 #Test_set <- load_obj("/run/media/kleingel/Lexar/KNMI/Test_data_R2.Rda")
+Test_set <- load_obj("/usr/people/kleingel/Projects/MLProject/Test_data_R2.Rda")
+
 ```
 
 ### Build the training set
@@ -293,7 +298,8 @@ To use these sets in the scripts which build TW models we need to save the sets.
 # The sets are saved to your working directory as Rdata files
 # Your current working directory is:
 getwd()
-setwd("C:/Users/Eva/Documents/Stage/ML_project")
+#setwd("C:/Users/Eva/Documents/Stage/ML_project")
+setwd("/usr/people/kleingel/Projects/MLProject")
 
 # Save the test/train predictor sets 
 save(Train_set, file = "Train_set_R2.Rda")
