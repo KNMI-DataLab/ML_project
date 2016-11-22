@@ -36,8 +36,8 @@ Remove NA values in TL and TD
 
 ```{r}
 #How many NA values in all data frame columns?
-The_NAs <- apply(The_Days,2, is.na)
-apply(The_NAs, 2, sum)
+#The_NAs <- apply(The_Days,2, is.na)
+#apply(The_NAs, 2, sum)
 
 # As you can see, only the TL and TD columns contain NA's 
 # Next, we remove all rows which contain TL/TD NA values
@@ -66,7 +66,7 @@ We first make a 94%/6% split. The 6% Sub set is split into test and train.
 library(caret)
 
 # In order to generate the same sequence of random numbers everytime we run this script (so that we every time get the same test/train split) we set a seed
-set.seed(42)
+set.seed(442)
 
 # Create the 94%/6% split
 InSub <- createDataPartition(The_Days$TEMP, p = 0.50, list = FALSE)
@@ -78,10 +78,10 @@ Sub <- The_Days[InSub, ]
 (length(Sub$LOCATION)/ length(The_Days$LOCATION)) * 100
 
 
-set.seed(300)
+set.seed(4300)
 
 # Split the subset into train and test (66% train, 33% test) 
-InTrain <- createDataPartition(Sub$TEMP, p = 0.66, list = FALSE)
+InTrain <- createDataPartition(Sub$TEMP, p = 0.5, list = FALSE)
 
 # Build the train set
 Train_data <- Sub[InTrain, ]
