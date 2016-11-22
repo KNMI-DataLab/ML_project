@@ -143,6 +143,16 @@ Target_Test <- Target_Test + 273.15
 # save(Test_set, file = "Test_set_unProcessed.Rda")
 ```
 
+Test if all stations in train are also in test
+
+```{r}
+
+
+
+```
+
+
+
 # PreProcessing
 
 Here we remove variables with zero variance ("zv"), perform a BoxCox transform to resolve skewness ("BoxCox"), center and scale the data ("center", "scale") and perform a principal component analysis ("pca"). 
