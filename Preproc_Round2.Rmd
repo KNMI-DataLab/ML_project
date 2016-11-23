@@ -47,20 +47,20 @@ load_obj <- function(f)
 }
 
 # Read in the environmental dataset
-Env_Data <- load_obj("F:/KNMI/MLProject/Env_Data.Rda")
+#Env_Data <- load_obj("F:/KNMI/MLProject/Env_Data.Rda")
 #Env_Data <- load_obj("/run/media/kleingel/Lexar/KNMI/Env_Data.Rda")
-#Env_Data <- load_obj("/usr/people/kleingel/Projects/MLProject/Env_Data.Rda")
+Env_Data <- load_obj("/usr/people/kleingel/Projects/MLProject/Env_Data.Rda")
 
 # Read in the train set
-Train_set <- load_obj("F:/KNMI/Train_data_R2.Rda")
+#Train_set <- load_obj("F:/KNMI/Train_data_R2.Rda")
 #Train_set <- load_obj("/run/media/kleingel/Lexar/KNMI/Train_data_R2.Rda")
-#Train_set <- load_obj("/usr/people/kleingel/Projects/MLProject/Train_data_R2.Rda")
+Train_set <- load_obj("/usr/people/kleingel/Projects/MLProject/Train_data_R2_BIG.Rda")
 
 
 # Read in the test set
-Test_set <- load_obj("F:/KNMI/Test_data_R2.Rda")
+#Test_set <- load_obj("F:/KNMI/Test_data_R2.Rda")
 #Test_set <- load_obj("/run/media/kleingel/Lexar/KNMI/Test_data_R2.Rda")
-#Test_set <- load_obj("/usr/people/kleingel/Projects/MLProject/Test_data_R2.Rda")
+Test_set <- load_obj("/usr/people/kleingel/Projects/MLProject/Test_data_R2_BIG.Rda")
 
 ```
 
@@ -84,7 +84,8 @@ par(mfrow= c(1,1))
 
 # Load the Six_Days dataset and plot LOCATION distribution next to train/test
 # NOTE: This WILL make your computer run a lot more slowly
-Six_Days <- load_obj("F:/KNMI/Six_Days.Rda")
+#Six_Days <- load_obj("F:/KNMI/Six_Days.Rda")
+Six_Days <- load_obj("/usr/people/kleingel/Projects/MLProject/Six_Days.Rda")
 
 par(mfrow= c(1,3))
 
@@ -94,6 +95,28 @@ hist(Test_set$LOCATION, breaks = seq(1:1505), main = "Test",  freq = FALSE)
 
 par(mfrow= c(1,1))
 
+# Test if all stations are recording on all four days
+
+# 1. Get unique station numbers for each of the four days
+Stat_DOY <- tapply(Six_Days$LOCATION, Six_Days$DOY_Days, unique)
+
+#2. Test if lengths are equal
+for (i in 1:6) {
+  print(i)
+  print(length(Stat_DOY[[i]]))
+}
+
+# Not every day has the same amount of stations
+# It is likely that on some days a few stations were down. It is also possible that some stations have been added over the years, so that later years have a higher, unique, number of sensors. 
+
+# Test which stations are in ALL DOY subsets 
+In_All_DOY <- Reduce(intersect, Stat_DOY)
+
+# Now get a vector with all the station numbers that occur in the data
+All_Stat <- unique(unlist(Stat_DOY, use.names = FALSE))
+
+# Now get the stations that are not in all DOY subsets
+Missing_Stat <- setdiff(All_Stat, In_All_DOY)
 ``` 
 
 
