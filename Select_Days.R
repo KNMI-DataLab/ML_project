@@ -116,10 +116,10 @@ Six_Days_3 <- Six_Days_3[!(Six_Days_3$LOCATION == 108|
 
 
 # Store the GMS six days data frame as .csv
-write.csv(x = Six_Days_3, file = "/usr/people/kleingel/Projects/MLProject/Six_Days.csv")
+write.csv(x = Six_Days_3, file = "/run/media/kleingel/Lexar/KNMI/Six_Days.csv")
 
 # Store the GMS six days data frame as R data
-save(x = Six_Days_3, file = "/usr/people/kleingel/Projects/MLProject/Six_Days.Rda")
+save(x = Six_Days_3, file = "/run/media/kleingel/Lexar/KNMI/Six_Days.Rda")
 
 
 
