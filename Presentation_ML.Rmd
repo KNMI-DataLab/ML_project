@@ -1,0 +1,104 @@
+---
+title: "Presentation: Predicting Road Temperatures"
+author: "Eva Kleingeld & Marieke Dirksen"
+date: "September 2, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+rm(list=ls())
+  
+#install required packages here
+#install.packages("caret", dependencies = c("Imports", "Depends", "Suggests"))
+
+
+```
+
+In this markdown document we demonstrate the way we build models for the prediction of road temperature (TW). Because the more complex models will take a long time to train we will demonstrate the way machine learning algorithms work by training and testing them on a 5 minute data set. 
+
+First, we will load in some data from the GMS and some environmental data
+```{r}
+## Read in the GMS data
+load("/run/media/kleingel/Lexar/KNMI/MLProject/Data_10min.Rda")
+
+# Remove outliers
+Data_10min <- Data_10min[Data_10min$QUALITY == "valid", ]
+Data_10min <- Data_10min[ ,-7]
+
+# Read in the environmental data
+load("/run/media/kleingel/Lexar/KNMI/MLProject/Env_Data.Rda")
+
+## Merge GMS and environmental data
+data_GMS<-merge(Data_10min,Env_Data_4,by.x=c("LOCATION","SENSOR"),by.y=c("MISD","SENSOR"))
+
+## Split data_GMS into a training and test set
+Time_1 <- as.POSIXct("2016-06-28 00:05:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT")
+Time_2 <- as.POSIXct("2016-06-28 00:10:00", format = "%Y-%m-%d %H:%M:%S", tz = "GMT")  
+
+Train_data <- subset(data_GMS, data_GMS$TIMESTAMP == Time_1) 
+Test_data <- subset(data_GMS, data_GMS$TIMESTAMP == Time_2)
+
+## Drop the LOC/Sensor/Timestamp data because this will not be used for building the models
+Train_data <- Train_data[ ,-(1:3)]
+Test_data <- Test_data[ ,-(1:3)]
+
+```
+
+Let's take a look at this data.
+
+```{r}
+library(ggplot2)
+
+# The continuous variables
+head(Train_data[1:7])
+
+# The dummy variables
+head(Train_data[8: length(colnames(Train_data))])
+
+ggplot(data = data_GMS) + geom_point(aes(x = LOCATION, y = TEMP, color ="Road Temperature"), alpha = 0.30)+
+                          geom_point(aes(x = LOCATION, y = TL, color = "Air Temperature"))+
+                          xlab("Station number")+
+                          ylab("Temperature in degrees")+
+                          scale_color_manual(name ="", values=c("Road Temperature"="#0066CC", "Air Temperature"="black"))+
+            ggtitle("Road and air temperature at the GMS stations")
+  
+                        
+
+
+```
+
+Next, we need to center and scale the data. 
+We center by subtracting the mean from the data.
+We scale by dividing by the standard deviation. 
+
+You do not want to center and scale the dummy variables. Therefore we transform only the first part of the dataset. 
+We also need to remove variables with only one value: Zero variance variables.
+
+```{r}
+library(caret)
+
+# Remove zero variance variables (Unix Time)
+Train_data <- Train_data[ ,-4]
+Test_data <- Test_data[ ,-4]
+
+# Center and scale train and test data
+CenterScale_Train <- preProcess(x = Train_data[ ,(1:6)], method = c("center", "scale"), na.remove = TRUE)
+Train_data[ ,(1:6)] <- predict(CenterScale_Train, Train_data[ ,(1:6)])
+Test_data[ ,(1:6)] <- predict(CenterScale_Train, Test_data[ , (1:6)])
+
+# remove rows with NA values
+Train_data <- Train_data[complete.cases(Train_data), ]
+Test_data <- Test_data[complete.cases(Test_data), ]
+
+
+
+```
+
+
+
+
+
+

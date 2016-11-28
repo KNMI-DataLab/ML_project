@@ -79,7 +79,7 @@ par(mfrow= c(1,2))
 
 hist(Train_set$LOCATION)
 hist(Test_set$LOCATION)
-
+ 
 par(mfrow= c(1,1))
 
 # Load the Six_Days dataset and plot LOCATION distribution next to train/test

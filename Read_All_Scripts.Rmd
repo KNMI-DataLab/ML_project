@@ -1,0 +1,166 @@
+---
+title: "Read_All_Scripts"
+author: "Eva Kleingeld"
+date: "July 13, 2016"
+output: pdf_document
+---
+# raw GMS data
+
+
+``` {r}
+rm(list=ls())
+
+
+library(data.table)
+
+filecode1 <- "/data/project/GMS/data/GMSraw/"
+
+Data_2009_03_01 <- fread(paste0(filecode1, "2009-03-01.csv"))
+Data_2016_06_28 <- fread(paste0(filecode1, "2016-06-28.csv"))
+```
+The number of stations in the dataset during 01-03-2009 is `r length(unique(Data_2016_06_28$LOCATION))`.
+The number of stations in the dataset during 28-06-2016 is `r length(unique(Data_2009_03_01$LOCATION))`.
+
+## Data from how many sensors?
+
+Sometimes there is no data from a nr of sensors between TW_1 and TW_12, say TW_4 - TW_7, does this always mean that there is data loss? If there are less than the maximum nr of sensors: is there a gap from last sensor - TW_12? To test this I plotted the first few rows of the data for one station (station 507)
+
+
+In 2009 sensors TW_5, TW_6 and TW_7 reported NA values.
+In 2016 sensors reported NA values for sensor TW_4 only. 
+
+```{r collapse= TRUE, results= 'hold', tidy= TRUE} 
+head(Data_2009_03_01[Data_2009_03_01$LOCATION == 507])
+head(Data_2016_06_28[Data_2016_06_28$LOCATION == 507])
+
+```
+
+----
+
+## NA_BOOLEAN and NA_NUMBER
+
+
+Something seems of with the NA_BOOLEAN column. This column seems to have very many NA values. 
+
+```{r , results= 'hold'}
+
+
+all(is.na(Data_2009_03_01$NA_BOOLEAN))
+all(is.na(Data_2016_06_28$NA_BOOLEAN))
+table(Data_2016_06_28$NA_BOOLEAN, useNA = "ifany")
+```
+
+Not all NA_BOOLEAN values are NA. Some are 0 and 1. 
+If NA_Boolean values are 0 or 1, what value does the NA_Number have?
+
+```{r, results= 'hold'}
+head(Data_2016_06_28$NA_NUMBER[Data_2016_06_28$NA_BOOLEAN == 1], n =25)
+tail(Data_2016_06_28$NA_NUMBER[Data_2016_06_28$NA_BOOLEAN == 0], n = 25)
+```
+
+So, for NA_Boolean is 1 or 0 the 2016 data seems to always give NA.
+What values can the NA_number take?
+
+```{r, results= 'hold'}
+table(Data_2016_06_28$NA_NUMBER, useNA = "ifany")
+
+head(table(Data_2009_03_01$NA_NUMBER, useNA = "ifany"))
+tail(table(Data_2009_03_01$NA_NUMBER, useNA = "ifany"))
+
+hist(Data_2009_03_01$NA_NUMBER)
+# hist() does not work for 2016 because hist() does not work on NA values. 
+```
+
+After checking with Marieke I heard that at first rainfall intensity was recorded at the GMS stations, but later it was decided that there would only be recorded if any rain had fallen: a yes/no question. This suggests that at first rainfall intensity was recorded as NA_NUMBER and later it was recorded wether it rained or not using NA_BOOLEAN (yes = 1, no = 0?).  
+
+# Filtered GMS data
+
+The filtered GMS data contains 5 columns.
+The first column contains the station number, the second the road temperature (TW), the third the relevant road temperature sensor, the fourth the time, the fifth contains a "valid"/"suspect" code. The data is marked as valid when it has passed an advanced quality control performed by marieke. The data read in here is for one day only.There are just as much filtered GMS files as that there are raw GMS files (: same number of days). Maybe I can correct the TW in the raw data based on the filtered data files?
+
+```{r}
+Data_filtered_2016_06_28 <- fread("/data/project/GMS/data/GMSfiltered/2016-06-28.csv")
+head(Data_filtered_2016_06_28)
+```
+
+# Auxilary data
+Below I read in all the auxilary data
+
+```{r}
+filecode2 <- "/data/project/GMS/data/auxcillary_data/"
+```
+
+## Point data
+
+```{r}
+
+Land_Use <- read.csv(paste0(filecode2, "Ancillary_point_data/bodemgebruik_bbg2010.txt"), header = TRUE)
+Soil_type <- read.csv("/data/project/GMS/data/auxcillary_data/Ancillary_point_data/Grondsoortenkaart_2006.txt")
+Height <- read.csv("/data/project/GMS/data/auxcillary_data/Ancillary_point_data/Height_divagis.txt")
+Wegdekvlakken <- read.csv("/data/project/GMS/data/auxcillary_data/Ancillary_point_data/Wegdekvlakken.txt") # Bevat veel NA
+
+head(Land_Use)
+head(Soil_type)
+head(Height)
+head(Wegdekvlakken)
+
+```
+
+## Meta data GMS
+
+```{r}
+CodeTw1 <- read.csv("/data/project/GMS/data/auxcillary_data/MetadataGMS/codeTW1.csv", header = TRUE)
+MetaData_GMScoding<- read.csv("/data/project/GMS/data/auxcillary_data/MetadataGMS/metadataGMScoding.csv", header = TRUE)
+
+head(CodeTw1)
+head(MetaData_GMScoding)
+
+```
+
+## Night_selection
+```{r}
+NightSelection <- fread("/data/project/GMS/data/auxcillary_data/night_selection/qryOutputSelectieNachten260.txt")
+head(NightSelection)
+```
+
+## KNMI data
+
+```{r}
+KNMI_2010 <- read.delim("/data/project/GMS/data/auxcillary_data/KNMI10min/dirksen_knmi_t10min_2010.dat", sep = " ", header = FALSE)
+KNMI_2011 <- read.delim("/data/project/GMS/data/auxcillary_data/KNMI10min/dirksen_knmi_t10min_2011.dat", sep = " ", header = FALSE)
+KNMI_2012 <- read.delim("/data/project/GMS/data/auxcillary_data/KNMI10min/dirksen_knmi_t10min_2012.dat", sep = " ", header = FALSE)
+KNMI_2013 <- read.delim("/data/project/GMS/data/auxcillary_data/KNMI10min/dirksen_knmi_t10min_2013.dat", sep = " ", header = FALSE)
+
+head(KNMI_2010)
+head(KNMI_2011)
+head(KNMI_2012)
+head(KNMI_2013)
+```
+
+Something seems to go wrong with the KNMI data. After checking the original files in Office Excel it appears that this is a mistake in the data itself. I therefore attempted to download some KNMI data for myself from the KIS website. To do this I first made a selection of the station numbers, see code below. 
+
+```{r}
+
+Statnr_10 <- unique(as.integer(KNMI_2010$V3))
+Statnr_11 <- unique(as.integer(KNMI_2011$V3))
+Statnr_12 <- unique(as.integer(KNMI_2012$V3))
+Statnr_13 <- unique(as.integer(KNMI_2013$V3))
+
+Statnr_AllYr <- unique(c(Statnr_10, Statnr_11, Statnr_12, Statnr_13))
+
+# Er zitten waarschijnlijk ook verkeerde waarden in de stationsnummers, want er zitten negatieve waarden bij 
+# Verwijder de negatieve waarden
+
+Statnr_AllYr <- Statnr_AllYr[Statnr_AllYr >= 0]
+
+# Codes op KIS site beginnen vanaf 201 en lopen tot 339
+# Ga er vanuit dat stationscodes lager 201 fout zijn en verwijder ze. Sorteer voor overzicht
+
+Statnr_AllYr <- sort(Statnr_AllYr[Statnr_AllYr >= 201])
+
+Statnr_AllYr
+
+```
+
+
+
