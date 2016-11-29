@@ -150,6 +150,7 @@ all(Stat_Sens_test %in% Stat_Sens_train)
 
 
 
+
 Finally, we need to save the test/train sets as .Rda files, so that we can read them in in the next script to be pre-processed. Here we save to a USB stick, but you can also set to save to another folder. 
 
 ```{r}
