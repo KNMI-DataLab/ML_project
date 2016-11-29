@@ -20,9 +20,9 @@ rm(list=ls())
 # Install packages if needed
 
 # Read in the 6 Days data set
-#load("F:/KNMI/Six_Days.Rda")
+load("F:/KNMI/Six_Days.Rda")
 #load("/run/media/kleingel/Lexar/KNMI/Six_Days.Rda")
-load("/usr/people/kleingel/Projects/MLProject/Six_Days.Rda")
+#load("/usr/people/kleingel/Projects/MLProject/Six_Days.Rda")
 
 # Rename dataframe
 The_Days <- Six_Days_3
@@ -156,7 +156,7 @@ Finally, we need to save the test/train sets as .Rda files, so that we can read 
 # Save train
 #save(Train_data, file = "F:/KNMI/Train_data_R2_BIG.Rda")
 #save(Train_data, file = "/run/media/kleingel/Lexar/KNMI/Train_data_R2.Rda")
-save(Train_data, file = "/usr/people/kleingel/Projects/MLProject//Train_data_R2_BIG.Rda")
+save(Train_data, file = "/usr/people/kleingel/Projects/MLProject/Train_data_R2_BIG.Rda")
 
 # Save test
 #save(Test_data, file = "F:/KNMI/Test_data_R2_BIG.Rda")
