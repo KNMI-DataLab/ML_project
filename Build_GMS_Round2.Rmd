@@ -30,6 +30,15 @@ rm(Six_Days_3)
 
 # Examine data frame
 str(The_Days)
+unique(The_Days$DOY_Days)
+
+# Get day 68 from The_Days
+Day_68 <- subset(The_Days,The_Days$DOY_Days == 68)
+
+any(!(is.na(Day_68$TL)))
+any(!(is.na(Day_68$TD)))
+
+
 ```
 
 Remove NA values in TL and TD
@@ -42,7 +51,6 @@ Remove NA values in TL and TD
 # As you can see, only the TL and TD columns contain NA's 
 # Next, we remove all rows which contain TL/TD NA values
 The_Days <- na.omit(The_Days)
-
 ```
 
 
@@ -144,6 +152,10 @@ Stat_Sens_test <- cbind(Test_data$LOCATION, Test_data$SENSOR)
 
 all(Stat_Sens_test %in% Stat_Sens_train)
 
+# Test number of days in test/train
+unique(Train_data$DOY_Days)
+unique(Test_data$DOY_Days)
+unique(The_Days$DOY_Days)
 ```
 
 
