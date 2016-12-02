@@ -4,6 +4,7 @@
 .Ruserdata
 Data_10min.Rda
 Data_10min.csv
+Data_preProc_DummyV.pdf
 Env_Data.Rda
 Env_Data.csv
 GMS_1.5h.Rda
@@ -33,3 +34,19 @@ Train_set_R2.Rda
 filename.pdf
 plot_w_rotated_axis_labels.png
 >>>>>>> 15d22cecd889b6bc75af7a8bc9287c3db7ac7464
+Build_GMS_Round2.html
+Corr_Test.png
+Corr_Train.png
+Data_PreProc_DummyV.html
+Data_PreProc_DummyV.rar
+DropboxInstaller.exe
+Predictors_Test_6h.Rda
+Predictors_Train_6h.Rda
+Preproc_Round2.pdf
+Presentatie_RWS.Rmd
+Presentatie_RWS.docx
+Presentation_ML.Rmd
+Read_All_Scripts.Rmd
+Round2_Data_and_PreProcess.html
+Test_PreProcess.html
+Test_PreProcess.pdf
