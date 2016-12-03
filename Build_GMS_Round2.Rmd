@@ -89,7 +89,7 @@ Sub <- The_Days[InSub, ]
 set.seed(4300)
 
 # Split the subset into train and test (66% train, 33% test) 
-InTrain <- createDataPartition(Sub$TEMP, p = 0.5, list = FALSE)
+InTrain <- createDataPartition(Sub$TEMP, p = 0.6, list = FALSE)
 
 # Build the train set
 Train_data <- Sub[InTrain, ]
@@ -167,14 +167,14 @@ Finally, we need to save the test/train sets as .Rda files, so that we can read 
 
 ```{r}
 # Save train
-#save(Train_data, file = "F:/KNMI/Train_data_R2_BIG.Rda")
+save(Train_data, file = "F:/KNMI/Train_data_R2_BIG.Rda")
 #save(Train_data, file = "/run/media/kleingel/Lexar/KNMI/Train_data_R2.Rda")
-save(Train_data, file = "/usr/people/kleingel/Projects/MLProject/Train_data_R2_BIG.Rda")
+#save(Train_data, file = "/usr/people/kleingel/Projects/MLProject/Train_data_R2_BIG.Rda")
 
 # Save test
-#save(Test_data, file = "F:/KNMI/Test_data_R2_BIG.Rda")
+save(Test_data, file = "F:/KNMI/Test_data_R2_BIG.Rda")
 #save(Test_data, file = "/run/media/kleingel/Lexar/KNMI/Test_data_R2.Rda")
-save(Test_data, file = "/usr/people/kleingel/Projects/MLProject/Test_data_R2_BIG.Rda")
+#save(Test_data, file = "/usr/people/kleingel/Projects/MLProject/Test_data_R2_BIG.Rda")
 
 ```
 
