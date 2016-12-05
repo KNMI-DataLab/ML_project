@@ -50,20 +50,19 @@ load_obj <- function(f)
 }
 
 # Read in the environmental dataset
-Env_Data <- load_obj("F:/KNMI/MLProject/Env_Data.Rda")
+#Env_Data <- load_obj("F:/KNMI/MLProject/Env_Data.Rda")
 #Env_Data <- load_obj("/run/media/kleingel/Lexar/KNMI/Env_Data.Rda")
-#Env_Data <- load_obj("/usr/people/kleingel/Projects/MLProject/Env_Data.Rda")
+Env_Data <- load_obj("/usr/people/kleingel/Projects/MLProject/Env_Data.Rda")
 
 # Read in the train set
-Train_set <- load_obj("F:/KNMI/Train_data_R2_BIG.Rda")
+#Train_set <- load_obj("F:/KNMI/Train_data_R2_BIG.Rda")
 #Train_set <- load_obj("/run/media/kleingel/Lexar/KNMI/Train_data_R2.Rda")
-#Train_set <- load_obj("/usr/people/kleingel/Projects/MLProject/Train_data_R2_BIG.Rda")
-
+Train_set <- load_obj("/usr/people/kleingel/Projects/MLProject/Train_data_R2_BIG.Rda")
 
 # Read in the test set
-Test_set <- load_obj("F:/KNMI/Test_data_R2_BIG.Rda")
+#Test_set <- load_obj("F:/KNMI/Test_data_R2_BIG.Rda")
 #Test_set <- load_obj("/run/media/kleingel/Lexar/KNMI/Test_data_R2.Rda")
-#Test_set <- load_obj("/usr/people/kleingel/Projects/MLProject/Test_data_R2_BIG.Rda")
+Test_set <- load_obj("/usr/people/kleingel/Projects/MLProject/Test_data_R2_BIG.Rda")
 
 ```
 
@@ -79,8 +78,8 @@ We import the Six_Days data set below to test this.
 # NOTE: This WILL make your computer run a lot more slowly
 # To test another predictor simply replace LOCATION with the name of the predictor who's distribution you wish to test
 
-Six_Days <- load_obj("F:/KNMI/Six_Days.Rda")
-#Six_Days <- load_obj("/usr/people/kleingel/Projects/MLProject/Six_Days.Rda")
+#Six_Days <- load_obj("F:/KNMI/Six_Days.Rda")
+Six_Days <- load_obj("/usr/people/kleingel/Projects/MLProject/Six_Days.Rda")
 
 par(mfrow= c(1,3))
 
@@ -179,6 +178,7 @@ Target_Train <- Train_set$TEMP
 
 # Drop LOCATION/SENSOR/TIMESTAMP and TEMP
 # For now, do not drop "LOCATION"
+# If you are removing missing stations, do not remove TEMP here
 To_drop <- c("SENSOR", "TIMESTAMP", "TEMP")
 Train_set <- Train_set[ ,!(names(Train_set) %in% To_drop)]
 
@@ -211,6 +211,7 @@ Target_Test <- Test_set$TEMP
 
 # Drop LOCATION/SENSOR/TIMESTAMP and TEMP
 # For now do not drop "LOCATION"
+# If you are removing missing stations, do not remove TEMP here
 To_drop <- c("SENSOR", "TIMESTAMP", "TEMP")
 Test_set <- Test_set[ ,!(names(Test_set) %in% To_drop)]
 
@@ -271,9 +272,19 @@ Remaining_Train <- 335 -
 The missing stations miss completely on at least one of the days in the test/train sets. Removing all misssing stations may on the one hand improve the model (maybe it will be easier to recognise patterns). On the other hand removing stations reduces the available spatial data points, thereby making it more difficult to build a spatial model. 
 
 ```{r}
-# Test what happens to the PCA when you remove all the missing stations from the test/train sets
-Train_set <- subset(Train_set, !(Train_set$LOCATION %in% Missing_TestTrain))
-Test_set <- subset(Test_set, !(Test_set$LOCATION %in% Missing_TestTrain))
+# # Test what happens to the PCA when you remove all the missing stations from the test/train sets
+# Train_set <- subset(Train_set, !(Train_set$LOCATION %in% Missing_TestTrain))
+# Test_set <- subset(Test_set, !(Test_set$LOCATION %in% Missing_TestTrain))
+# 
+# # Get the corresponding target variable (: To do this, do not remove TEMP at the build test/train sections)
+# Target_Train <- Train_set$TEMP
+# Target_Test <- Test_set$TEMP
+# 
+# # Drop the TEMP variable
+# To_drop <- c("TEMP")
+# Train_set <- Train_set[ ,!(names(Train_set) %in% To_drop)]
+# Test_set <- Test_set[ ,!(names(Test_set) %in% To_drop)]
+
 ```
 
 ## Drop the LOCATION variable
@@ -360,7 +371,6 @@ xTrans$numComp
 
 # BoxCox transformed predictors
 xTrans$method$BoxCox
-
 
 # Transform train set
 Train_set <- predict(xTrans, Train_set)
@@ -480,6 +490,19 @@ any(NearZero_Test$nzv)
 
 ```
 
+### Add the target variable (road temperature) to the pre-processed test/train sets
+
+```{r}
+# Test if the length of the target variable is the same as that of the columns in test/train
+length(Train_set$PC1) == length(Target_Train)
+length(Test_set$PC1) == length(Target_Test)
+
+# If so, we can now add the target variable back to the train/test sets
+Train_set$TRoad <- Target_Train
+Test_set$TRoad <- Target_Test
+```
+
+
 # Final step: Save sets
 
 To use these sets in the scripts which build TW models we need to save the sets. 
@@ -492,11 +515,11 @@ getwd()
 #setwd("/usr/people/kleingel/Projects/MLProject")
 
 # Save the test/train predictor sets 
-save(Train_set, file = "F:/KNMI/Train_BIG_noM.Rda")
-save(Test_set, file = "F:/KNMI/Test_BIG-noM.Rda")
+save(Train_set, file = "Train_BIG_noM.Rda")
+save(Test_set, file = "Test_BIG_noM.Rda")
 
 # Save the corresponding target variables
-save(Target_Train, file = "F:/KNMI/Train_Target_BIG_noM.Rda")
-save(Target_Test, file = "F:/KNMI/Test_Target_BIG_noM.Rda")
+save(Target_Train, file = "Train_Target_BIG_noM.Rda")
+save(Target_Test, file = "Test_Target_BIG_noM.Rda")
 
 ```
