@@ -27,9 +27,9 @@ ogrListLayers(The_link)
 
 # converts to ESRI Shapefile?
 # https://www.rdocumentation.org/packages/gdalUtils/versions/2.0.1.7/topics/ogr2ogr 
-ogr2ogr(The_link, "AAA2100.shp", layer = "AAA2100")
+ogr2ogr(The_link, "AAA100.shp", layer = "AAA100")
 
 
-deklagen_DNH<-readOGR("AAA2100.shp","AAA2100")
+deklagen_DNH<-readOGR("AAA100.shp","AAA100")
 
 plot(deklagen_DNH)
