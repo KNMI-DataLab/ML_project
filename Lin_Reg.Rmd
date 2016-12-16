@@ -1,0 +1,128 @@
+---
+title: "Lin_Reg"
+author: "Eva Kleingeld"
+date: "December 15, 2016"
+output: html_document
+---
+
+First clear your working environment and install all necessary packages
+
+```{r}
+rm(list=ls())
+
+# Install packages
+#install.packages("caret")
+
+```
+
+Now load in the test and train sets and split them into target and predictor sets
+
+```{r}
+# Load train
+load("/usr/people/kleingel/Projects/MLProject/Train_BIG_noCat.Rda")
+
+# Load test
+load("/usr/people/kleingel/Projects/MLProject/Test_BIG_noCat.Rda")
+
+# Split train set into target and predictors 
+Target_Train <- Train_set$TRoad
+Train_set <- subset(Train_set, select=-c(TRoad))
+
+# Split test set into target and predictors
+Target_Test <- Test_set$TRoad
+Test_set <- subset(Test_set, select = -c(TRoad))
+
+```
+
+# Build a linear model
+
+To test:
+Can you supply mutiple metrics? metric = c("RMSE", "Rsquared")
+
+Possible cross-validation options:
+
+cv = K-fold cross validation
+repeatedcv = K-fold cross validation, repeated a certain nr. of times (why do this?)
+LGOCV = leave group out cross validation 
+boot = bootstrap
+oob = out of bag (for Ranfom Forest)
+
+
+```{r}
+library(caret)
+
+control<-trainControl(method="repeatedcv",repeats=5,number=10) 
+length <- 10
+
+gbmGridReduced<-expand.grid(.shrinkage=c(0.1),.n.trees=3:5,.interaction.depth=4:6,.n.minobsinnode=3:5)
+
+system.time(LinearModel <- train(x = Train_set, 
+                                 y = Target_Train, 
+                                 method = "lm", 
+                                 metric = "RMSE",
+                                 trControl = control,
+                                 tuneLength = length))
+
+summary(LinearModel)
+
+LinearModel$results
+
+# Predict
+LM_Predict <- extractPrediction(models = list(LinearModel), testX = Test_set, testY = Target_Test)
+
+# Plot observed versus predicted
+plotObsVsPred(LM_Predict)
+
+
+#Save the model
+save(LinearModel, file =  "/usr/people/kleingel/Projects/MLProject/LinearModel.Rda")
+
+```
+
+```{r}
+library(caret)
+library(doParallel)
+library(foreach)
+library(kernlab)
+
+cl<-makeCluster(8)
+registerDoParallel(cl)
+getDoParWorkers()
+
+sigmaRangeReduced<-sigest(as.matrix(Target_Train))[1]
+svmRadialRGridReduced<-expand.grid(C=2^(seq(-4,4)))
+
+control<-trainControl(method="repeatedcv",repeats=5,number=10) 
+
+SVMradModel <- train(x  = Train_set, 
+                     y = Target_Train, 
+                     method = "svmRadialCost", 
+                     scale = FALSE)
+                     tuneGrid = svmRadialRGridReduced)
+                     ,
+                     trControl = control)
+
+# control<-trainControl(method="repeatedcv",repeats=5,number=10) 
+# rfgridreduced <-expand.grid(mtry=2:3)
+# length <- 10
+# 
+# RFModel <- train(x = Train_set, 
+#                  y = Target_Train,
+#                  method = "parRF",
+#                  tuneGrid = rfgridreduced,
+#                  importance = FALSE)
+# 
+# 
+# 
+
+
+
+
+
+```
+
+
+
+
+
+
