@@ -50,8 +50,16 @@ oob = out of bag (for Ranfom Forest)
 
 ```{r}
 library(caret)
+library(doParallel)
+library(parallel)
 
-control<-trainControl(method="repeatedcv",repeats=5,number=10) 
+
+#cluster_1<-makeCluster(7)
+registerDoParallel(3)
+#getDoParWorkers()
+
+
+control<-trainControl(method="repeatedcv",repeats=5,number=10, allowParallel = TRUE) 
 length <- 10
 
 gbmGridReduced<-expand.grid(.shrinkage=c(0.1),.n.trees=3:5,.interaction.depth=4:6,.n.minobsinnode=3:5)
@@ -74,6 +82,9 @@ LM_Predict <- extractPrediction(models = list(LinearModel), testX = Test_set, te
 plotObsVsPred(LM_Predict)
 
 
+stopCluster(cluster)
+registerDoSEQ()
+
 #Save the model
 save(LinearModel, file =  "/usr/people/kleingel/Projects/MLProject/LinearModel.Rda")
 
@@ -82,25 +93,31 @@ save(LinearModel, file =  "/usr/people/kleingel/Projects/MLProject/LinearModel.R
 ```{r}
 library(caret)
 library(doParallel)
-library(foreach)
+library(parallel)
+#library(foreach)
 library(kernlab)
 
-cl<-makeCluster(8)
-registerDoParallel(cl)
-getDoParWorkers()
+#cl<-makeCluster(7)
+registerDoParallel(3)
+#getDoParWorkers()
 
 sigmaRangeReduced<-sigest(as.matrix(Target_Train))[1]
 svmRadialRGridReduced<-expand.grid(C=2^(seq(-4,4)))
 
-control<-trainControl(method="repeatedcv",repeats=5,number=10) 
+control_2<-trainControl(method="cv", number=10, allowParallel = TRUE) 
 
 SVMradModel <- train(x  = Train_set, 
                      y = Target_Train, 
-                     method = "svmRadialCost", 
-                     scale = FALSE)
-                     tuneGrid = svmRadialRGridReduced)
-                     ,
-                     trControl = control)
+                     method = "svmRadialCost",
+                     trControl = control_2)
+
+                    # tuneGrid = svmRadialRGridReduced)
+                    # ,
+                    # trControl = control)
+
+
+stopCluster(cluster)
+registerDoSEQ()
 
 # control<-trainControl(method="repeatedcv",repeats=5,number=10) 
 # rfgridreduced <-expand.grid(mtry=2:3)
