@@ -49,22 +49,32 @@ cluster_1<-makeCluster(3)
 registerDoParallel(cluster_1)
 getDoParWorkers()
 
+NN_trainC <- trainControl(method = "cv", number = 10)
+
 NeuralNetw <- train(x  = Train_set, 
                      y = Target_Train, 
                      method = "neuralnet", 
                      hidden = c(3), 
                      linear.output = TRUE,
-                     lifesign = 'minimal')
+                     lifesign = 'minimal', 
+                     trControl = NN_trainC
+                    )
 
 stopCluster(cluster)
 registerDoSEQ()
 
 
 
+# Test if any NA
+
+for(i in seq_along(colnames(Train_set))){
+  print(i)
+  print(any(is.na(Train_set[, i])))
+  print(summary(Train_set[, i]))
+}
 
 
-
-
+any(is.na(Test_set))
 
 
 
