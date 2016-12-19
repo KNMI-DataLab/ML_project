@@ -1,0 +1,84 @@
+---
+title: "Neuralnet_R2"
+author: "Eva Kleingeld"
+date: "December 19, 2016"
+output: html_document
+---
+
+
+First clear your working environment and install all necessary packages
+
+```{r}
+rm(list=ls())
+
+# Install packages
+#install.packages("caret")
+
+```
+
+Now load in the test and train sets and split them into target and predictor sets
+
+```{r}
+# Load train
+load("/usr/people/kleingel/Projects/MLProject/Train_BIG_noCat.Rda")
+
+# Load test
+load("/usr/people/kleingel/Projects/MLProject/Test_BIG_noCat.Rda")
+
+# Split train set into target and predictors 
+Target_Train <- Train_set$TRoad
+Train_set <- subset(Train_set, select=-c(TRoad))
+
+# Split test set into target and predictors
+Target_Test <- Test_set$TRoad
+Test_set <- subset(Test_set, select = -c(TRoad))
+
+```
+
+# Build a neural network with neuralnet
+
+Here I build a neural network with the neuralnet package and caret 
+
+```{r}
+library(caret)
+library(doParallel)
+library(parallel)
+library(neuralnet)
+
+cluster_1<-makeCluster(3)
+registerDoParallel(cluster_1)
+getDoParWorkers()
+
+NeuralNetw <- train(x  = Train_set, 
+                     y = Target_Train, 
+                     method = "neuralnet", 
+                     hidden = c(3), 
+                     linear.output = TRUE,
+                     lifesign = 'minimal')
+
+stopCluster(cluster)
+registerDoSEQ()
+
+
+
+
+
+
+
+
+
+
+
+``` 
+
+
+
+
+
+
+
+
+
+
+
+
