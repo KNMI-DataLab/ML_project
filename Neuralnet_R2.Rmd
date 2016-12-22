@@ -13,6 +13,9 @@ rm(list=ls())
 
 # Install packages
 #install.packages("caret")
+#install.packages("caret", dependencies = c("Imports", "Depends", "Suggests"))
+
+
 
 ```
 
@@ -49,18 +52,23 @@ cluster_1<-makeCluster(3)
 registerDoParallel(cluster_1)
 getDoParWorkers()
 
-NN_trainC <- trainControl(method = "cv", number = 10)
+NN_trainC <- trainControl(method = "repeatedcv", repeats=5, number = 10)
 
 NeuralNetw <- train(x  = Train_set, 
                      y = Target_Train, 
                      method = "neuralnet", 
-                     hidden = c(3), 
-                     linear.output = TRUE,
-                     lifesign = 'minimal', 
-                     trControl = NN_trainC
-                    )
+                     trControl = NN_trainC)
+, 
+                     hidden = c(6),
+                     trControl = NN_trainC,
+                    savePredictions = "none")
+# , 
+#                      linear.output = TRUE,
+#                      lifesign = 'minimal', 
+#                      trControl = NN_trainC
+#                     )
 
-stopCluster(cluster)
+stopCluster(cluster_1)
 registerDoSEQ()
 
 
