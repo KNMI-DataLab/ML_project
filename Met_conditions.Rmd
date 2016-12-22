@@ -108,15 +108,17 @@ ggplot(data = Bilt_data) + geom_point(aes(x = Time, y = T10N, colour = as.factor
 
 # However, they do depend on cloud cover (NG) and wind direction (WindD)
 # Whenever cloud cover is high, minimum temperatures are less likely to occur
-ggplot(data = Bilt_data) + geom_point(aes(x = Time, y = T10N, colour = as.factor(NG))) 
+png("Cloud_Cover_T10N")
+ggplot(data = Bilt_data) + geom_point(aes(x = Time, y = T10N, colour = as.factor(NG))) + xlab("Time (days)") + ylab("Minimum temperature at 10cm (°C)")+ scale_colour_discrete(name = "Cloud cover")
+dev.off()
 
 # Lower T10N occurs more often with NE winds than with SW winds
 Bilt_data$WindD <- ifelse(Bilt_data$DDVEC <= 90, "NE", 
                           ifelse(Bilt_data$DDVEC >90 & Bilt_data$DDVEC <= 180, "SE", 
                                  ifelse(Bilt_data$DDVEC > 180 & Bilt_data$DDVEC <= 240, "SW", "NW")))
-
-ggplot(data = Bilt_data) + geom_point(aes(x = Time, y = T10N, colour = (WindD))) 
-
+png("WD_T10N")
+ggplot(data = Bilt_data) + geom_point(aes(x = Time, y = T10N, colour = (WindD)))+ xlab("Time (days)") + ylab("Minimum temperature at 10cm (°C)") + scale_colour_discrete(name = "Wind direction") 
+dev.off()
 
 # Histogram of the WindD column 
 plot(as.factor(Bilt_data$WindD))
