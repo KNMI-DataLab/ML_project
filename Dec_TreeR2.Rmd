@@ -1,0 +1,79 @@
+---
+title: "Dec_Tree"
+author: "Eva Kleingeld"
+date: "December 22, 2016"
+output: html_document
+---
+
+
+First clear your working environment and install all necessary packages
+
+```{r}
+rm(list=ls())
+
+# Install packages
+#install.packages("caret")
+#install.packages("caret", dependencies = c("Imports", "Depends", "Suggests"))
+
+
+
+```
+
+Now load in the test and train sets and split them into target and predictor sets
+
+```{r}
+# Load train
+load("/usr/people/kleingel/Projects/MLProject/Train_BIG_noCat.Rda")
+
+# Load test
+load("/usr/people/kleingel/Projects/MLProject/Test_BIG_noCat.Rda")
+
+# Split train set into target and predictors 
+Target_Train <- Train_set$TRoad
+Train_set <- subset(Train_set, select=-c(TRoad))
+
+# Split test set into target and predictors
+Target_Test <- Test_set$TRoad
+Test_set <- subset(Test_set, select = -c(TRoad))
+
+```
+
+# Build a decision tree
+
+```{r}
+library(caret)
+library(doParallel)
+library(parallel)
+library(rpart)
+
+cluster_1<-makeCluster(3)
+registerDoParallel(cluster_1)
+#getDoParWorkers()
+
+trainC <- trainControl(method = "cv", number = 3, allowParallel = TRUE)
+system.time(
+DecTree <- train(x  = Train_set, 
+                     y = Target_Train, 
+                     method = "rpart", 
+                     trControl = trainC))
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
