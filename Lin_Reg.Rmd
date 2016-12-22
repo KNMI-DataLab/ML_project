@@ -54,22 +54,25 @@ library(doParallel)
 library(parallel)
 
 
-#cluster_1<-makeCluster(7)
-registerDoParallel(3)
-#getDoParWorkers()
+cluster_1<-makeCluster(3)
+registerDoParallel(cluster_1)
+getDoParWorkers()
 
 
 control<-trainControl(method="repeatedcv",repeats=5,number=10, allowParallel = TRUE) 
-length <- 10
 
-gbmGridReduced<-expand.grid(.shrinkage=c(0.1),.n.trees=3:5,.interaction.depth=4:6,.n.minobsinnode=3:5)
 
-system.time(LinearModel <- train(x = Train_set, 
+
+LinearModel <- train(x = Train_set, 
                                  y = Target_Train, 
                                  method = "lm", 
-                                 metric = "RMSE",
                                  trControl = control,
-                                 tuneLength = length))
+                                 tuneLength = 10
+                                 )
+
+# Stop the cluster
+stopCluster(cluster_1)
+registerDoSEQ()
 
 summary(LinearModel)
 
@@ -78,12 +81,21 @@ LinearModel$results
 # Predict
 LM_Predict <- extractPrediction(models = list(LinearModel), testX = Test_set, testY = Target_Test)
 
-# Plot observed versus predicted
+# Plot observed versus predicted and save to a PDF
+png("LinReg_ObsPred")
 plotObsVsPred(LM_Predict)
+dev.off()
 
+# Calculate the residuals for the train/test sets
+LM_Residuals <- (LM_Predict$obs - LM_Predict$pred)
 
-stopCluster(cluster)
-registerDoSEQ()
+# Plot the residuals versus the observed values
+png("LinReg_ResPlot")
+plot(LM_Predict$obs,LM_Residuals, 
+  ylab="Residuals", xlab="Observed road temperature", 
+  main="Residual plot") 
+abline(0, 0)                  
+dev.off()
 
 #Save the model
 save(LinearModel, file =  "/usr/people/kleingel/Projects/MLProject/LinearModel.Rda")
