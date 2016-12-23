@@ -36,6 +36,12 @@ Train_set <- subset(Train_set, select=-c(TRoad))
 Target_Test <- Test_set$TRoad
 Test_set <- subset(Test_set, select = -c(TRoad))
 
+# Reduce the train set to 1% of its original size 
+# 1% equals..
+The_One_Percent <- createDataPartition(Target_Train, p = 0.01, list = FALSE)
+# Thus we can select 1% by doing
+One_Percent_Train <- Train_set[The_One_Percent, ]
+
 ```
 
 # Build a neural network with neuralnet
