@@ -371,6 +371,29 @@ for (i in colnames(Train_set)){
 }
 ```
 
+# Optional code: Remove A LOT of the predictors
+
+Also convert TD to RH 
+[link](http://journals.ametsoc.org/doi/pdf/10.1175/BAMS-86-2-225)
+```{r}
+# Calculate the relative humidity using the formula in the link above. 
+#Train_set$RH <- 100 - (5*(Train_set$TL - Train_set$TD))
+
+# What are the lowest/highest TL/TD values?
+#lengthTL <- Train_set$TL
+#test_1 <- sort(Train_set$TL, decreasing = TRUE)
+
+# Drop a MASSIVE amount of columns
+To_drop <- c("TD",  "Rijbaan_3", "Rijbaan_4", "Rijbaan_5", "Rijbaan_6", "Rijbaan_7", "Rijstrook_0", 
+             "Rijstrook_5", "Spitsstrook", "Oprit", "Afrit", "Brug_of_Viaduct_0", "Brug_of_Viaduct_1", "Brug_of_Viaduct_2")
+Train_set <- Train_set[ ,!(names(Train_set) %in% To_drop)]
+Test_set <- Test_set[ ,!(names(Test_set) %in% To_drop)]
+
+```
+
+
+
+
 # PreProcessing
 
 Here we remove variables with zero variance ("zv"), perform a BoxCox transform to resolve skewness ("BoxCox"), center and scale the data ("center", "scale") and perform a principal component analysis ("pca"). 
@@ -383,7 +406,7 @@ Dummy variables are included in the pca.
 library(caret)
 
 # Build the object containing the transform information
-xTrans <- preProcess(Train_set, method = c("zv", "BoxCox",  "center", "scale", "pca"),
+xTrans <- preProcess(Train_set, method = c("zv", "center", "scale"),
                      na.remove = TRUE)
 
 # Summary of transform information
@@ -538,8 +561,8 @@ getwd()
 #setwd("/usr/people/kleingel/Projects/MLProject")
 
 # Save the test/train predictor sets 
-save(Train_set, file = "Train_BIG_noCat.Rda")
-save(Test_set, file = "Test_BIG_noCat.Rda")
+save(Train_set, file = "Train_BIG_noPCA.Rda")
+save(Test_set, file = "Test_BIG_noPCA.Rda")
 
 # Save the corresponding target variables
 save(Target_Train, file = "Train_Target_BIG_noM.Rda")
