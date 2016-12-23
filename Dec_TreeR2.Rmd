@@ -45,10 +45,11 @@ library(caret)
 library(doParallel)
 library(parallel)
 library(rpart)
+library(rattle)
 
 cluster_1<-makeCluster(3)
 registerDoParallel(cluster_1)
-#getDoParWorkers()
+getDoParWorkers()
 
 trainC <- trainControl(method = "cv", number = 3, allowParallel = TRUE)
 system.time(
@@ -56,6 +57,63 @@ DecTree <- train(x  = Train_set,
                      y = Target_Train, 
                      method = "rpart", 
                      trControl = trainC))
+
+# Stop the cluster
+stopCluster(cluster_1)
+registerDoSEQ()
+
+#Save the model
+save(DecTree, file =  "/usr/people/kleingel/Projects/MLProject/DecTree.Rda")
+
+```
+
+
+# Analysis
+
+```{r}
+#Load the model
+load("/usr/people/kleingel/Projects/MLProject/DecTree.Rda")
+
+
+#Summary (If you plot this summary you will get a large amount of numbers printed to your screen, which won't be very interpretable. Therefore I commented this command.)
+#summary(DecTree)
+
+# Get the RMSE and R2 for each of the folds
+DecTree$results
+
+# Plot the decision tree
+png("TreePlot_R2")
+fancyRpartPlot(DecTree$finalModel)
+dev.off()
+
+# Variable importance
+DecTree_Imp <- varImp(DecTree)
+
+#Predict
+DecTree_Predict <- extractPrediction(models = list(DecTree), testX = Test_set, testY = Target_Test)
+
+# THIS PLOT IS TOO COMPUTATIONALLY INTENSIVE
+# Plot observed versus predicted and save to a png
+#png("DecTree_ObsPred")
+#plotObsVsPred(DecTree_Predict)
+#dev.off()
+
+# Plot the same manually (ggplot2) 
+png("DecTree_ObsPred")
+ggplot() + geom_point(aes(x = DecTree_Predict$obs, y = DecTree_Predict$pred))
+dev.off()
+
+
+# Calculate the residuals for the train/test sets
+DecTree_Residuals <- (DecTree_Predict$obs - DecTree_Predict$pred)
+
+# Plot the residuals versus the observed values
+png("DecTree_ResPlot")
+plot(DecTree_Predict$obs,DecTree_Residuals, 
+  ylab="Residuals", xlab="Observed road temperature", 
+  main="Residual plot") 
+abline(0, 0)                  
+dev.off()
 
 
 
