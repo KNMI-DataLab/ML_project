@@ -22,25 +22,36 @@ rm(list=ls())
 Now load in the test and train sets and split them into target and predictor sets
 
 ```{r}
+library(caret)
 # Load train
 load("/usr/people/kleingel/Projects/MLProject/Train_BIG_noCat.Rda")
 
 # Load test
 load("/usr/people/kleingel/Projects/MLProject/Test_BIG_noCat.Rda")
 
-# Split train set into target and predictors 
-Target_Train <- Train_set$TRoad
-Train_set <- subset(Train_set, select=-c(TRoad))
-
-# Split test set into target and predictors
-Target_Test <- Test_set$TRoad
-Test_set <- subset(Test_set, select = -c(TRoad))
-
 # Reduce the train set to 1% of its original size 
 # 1% equals..
-The_One_Percent <- createDataPartition(Target_Train, p = 0.01, list = FALSE)
-# Thus we can select 1% by doing
+The_One_Percent <- createDataPartition(Train_set$TRoad, p = 0.01, list = FALSE)
 One_Percent_Train <- Train_set[The_One_Percent, ]
+
+# Split into Train_set and Target_Train
+Target_Train <- One_Percent_Train$TRoad
+Train_set <- subset(One_Percent_Train, select=-c(TRoad))
+
+# DOESN'T WORK. neuralnet somehow thinks you are doing classification if you center scale the target var.
+# Test the effect of centering and scaling the target variable 
+#xTrans <- preProcess(as.data.frame(Target_Train), method = c("center", "scale"), na.remove = TRUE)
+#Target_Train <- as.vector(predict(xTrans, as.data.frame(Target_Train)))
+
+
+# # Split train set into target and predictors 
+# Target_Train <- Train_set$TRoad
+# Train_set <- subset(Train_set, select=-c(TRoad))
+# 
+# # Split test set into target and predictors
+# Target_Test <- Test_set$TRoad
+# Test_set <- subset(Test_set, select = -c(TRoad))
+
 
 ```
 
@@ -58,16 +69,16 @@ cluster_1<-makeCluster(3)
 registerDoParallel(cluster_1)
 getDoParWorkers()
 
-NN_trainC <- trainControl(method = "repeatedcv", repeats=5, number = 10)
+NN_trainC <- trainControl(method = "cv", number = 3)
 
 NeuralNetw <- train(x  = Train_set, 
                      y = Target_Train, 
                      method = "neuralnet", 
                      trControl = NN_trainC)
-, 
-                     hidden = c(6),
-                     trControl = NN_trainC,
-                    savePredictions = "none")
+ 
+                    #  hidden = c(6),
+                    #  trControl = NN_trainC,
+                    # savePredictions = "none")
 # , 
 #                      linear.output = TRUE,
 #                      lifesign = 'minimal', 
@@ -76,6 +87,11 @@ NeuralNetw <- train(x  = Train_set,
 
 stopCluster(cluster_1)
 registerDoSEQ()
+
+
+summary(NeuralNetw)
+
+print(NeuralNetw$results)
 
 
 
