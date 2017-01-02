@@ -23,10 +23,10 @@ Now load in the test and train sets and split them into target and predictor set
 
 ```{r}
 # Load train
-load("/usr/people/kleingel/Projects/MLProject/Train_BIG_noCat.Rda")
+load("/usr/people/kleingel/Projects/MLProject/Train_BIG_noPCA.Rda")
 
 # Load test
-load("/usr/people/kleingel/Projects/MLProject/Test_BIG_noCat.Rda")
+load("/usr/people/kleingel/Projects/MLProject/Test_BIG_noPCA.Rda")
 
 # Split train set into target and predictors 
 Target_Train <- Train_set$TRoad
@@ -51,19 +51,20 @@ cluster_1<-makeCluster(3)
 registerDoParallel(cluster_1)
 getDoParWorkers()
 
-trainC <- trainControl(method = "cv", number = 3, allowParallel = TRUE)
-system.time(
+trainC <- trainControl(method = "repeatedcv", repeats = 5, number = 10, allowParallel = TRUE)
+
 DecTree <- train(x  = Train_set, 
                      y = Target_Train, 
                      method = "rpart", 
-                     trControl = trainC))
+                     trControl = trainC, 
+                 tuneLength = 10)
 
 # Stop the cluster
 stopCluster(cluster_1)
 registerDoSEQ()
 
 #Save the model
-save(DecTree, file =  "/usr/people/kleingel/Projects/MLProject/DecTree.Rda")
+save(DecTree, file =  "/usr/people/kleingel/Projects/MLProject/DecTree_NoPCA.Rda")
 
 ```
 
@@ -82,7 +83,7 @@ load("/usr/people/kleingel/Projects/MLProject/DecTree.Rda")
 DecTree$results
 
 # Plot the decision tree
-png("TreePlot_R2")
+png("TreePlot_R2_NoPCA")
 fancyRpartPlot(DecTree$finalModel)
 dev.off()
 
@@ -99,7 +100,7 @@ DecTree_Predict <- extractPrediction(models = list(DecTree), testX = Test_set, t
 #dev.off()
 
 # Plot the same manually (ggplot2) 
-png("DecTree_ObsPred")
+png("DecTree_ObsPred_NoPCA")
 ggplot() + geom_point(aes(x = DecTree_Predict$obs, y = DecTree_Predict$pred))
 dev.off()
 
@@ -108,7 +109,7 @@ dev.off()
 DecTree_Residuals <- (DecTree_Predict$obs - DecTree_Predict$pred)
 
 # Plot the residuals versus the observed values
-png("DecTree_ResPlot")
+png("DecTree_ResPlot_noPCA")
 plot(DecTree_Predict$obs,DecTree_Residuals, 
   ylab="Residuals", xlab="Observed road temperature", 
   main="Residual plot") 
