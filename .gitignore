@@ -83,3 +83,9 @@ DecTree_ResPlot
 TreePlot_R2
 Test_BIG_noPCA.Rda
 Train_BIG_noPCA.Rda
+DecTree_NoPCA.Rda
+DecTree_ObsPred_NoPCA
+DecTree_ResPlot_noPCA
+TreePlot_R2_NoPCA
+Test_BIG_noPCA_LOC.Rda
+Train_BIG_noPCA_LOC.Rda
