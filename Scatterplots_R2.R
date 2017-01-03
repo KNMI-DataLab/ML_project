@@ -9,7 +9,7 @@ rm(list=ls())
 load("/usr/people/kleingel/Projects/MLProject/Train_BIG_noPCA_LOC.Rda")
 load("/usr/people/kleingel/Projects/MLProject/Test_BIG_noPCA_LOC.Rda")
 
-# The test and train sets are too big to plot the relationships between variables
+# The test and train sets are too big to easily plot the relationships between variables
 # For example, plotting the relationship between two variables in the train set takes up 10 GB of RAM
 # plot(x= Train_set$DOY_Days, y= Train_set$TRoad)
 
@@ -95,3 +95,8 @@ ggplot(data = Train_set, aes(x = as.factor(Zand), y = TRoad)) + geom_boxplot()
 
 # Klei
 ggplot(data = Train_set, aes(x = as.factor(Zand), y = TRoad)) + geom_boxplot()
+
+
+
+# And, just for fun, this is what you get when you try to plot ALL THE VARIABLES
+ggpairs(Train_set)
