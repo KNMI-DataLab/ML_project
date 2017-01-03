@@ -14,11 +14,13 @@ rm(list=ls())
 
 # Load libraries
 library(rgdal)
+library(raster)
 library(gdalUtils)
+library(sp)
 
 # The link
 The_link<-"WFS:http://geoservices.rijkswaterstaat.nl/kerngisdroog/dnh?service=WFS&request=getCapabilities"
-The_link <- "WFS:http://geoservices.rijkswaterstaat.nl/kerngisdroog/dnh?"
+#The_link <- "WFS:http://geoservices.rijkswaterstaat.nl/kerngisdroog/dnh?"
 
 # Read in an OGR data source, give a summary of what layers/information is in the GIS datasource
 ogrinfo(The_link, layer = "AAA2100",so=TRUE)
@@ -28,10 +30,11 @@ ogrListLayers(The_link)
 
 # converts to ESRI Shapefile?
 # https://www.rdocumentation.org/packages/gdalUtils/versions/2.0.1.7/topics/ogr2ogr 
-ogr2ogr(The_link, "AAA2100.shp", layer = "AAA2100")
+ogr2ogr(src_datasource_name = The_link, dst_datasource_name = "AAA2100.shp", layer = "AAA2100",
+        skipfailures = TRUE)
 
 
-deklagen_DNH<-readOGR("AAA100.shp","AAA2100")
+deklagen_DNH<-readOGR("AAA2100.shp","AAA2100")
 
 deklagen_DNH<-as(deklagen_DNH,"SpatialPolygons") # in RD-coords
 
