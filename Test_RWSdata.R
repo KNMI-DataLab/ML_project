@@ -17,11 +17,11 @@ library(rgdal)
 library(gdalUtils)
 
 # The link
-#The_link<-"WFS:http://geoservices.rijkswaterstaat.nl/kerngisdroog/dnh?service=WFS&request=getCapabilities"
+The_link<-"WFS:http://geoservices.rijkswaterstaat.nl/kerngisdroog/dnh?service=WFS&request=getCapabilities"
 The_link <- "WFS:http://geoservices.rijkswaterstaat.nl/kerngisdroog/dnh?"
 
 # Read in an OGR data source, give a summary of what layers/information is in the GIS datasource
-ogrInfo(The_link)
+ogrinfo(The_link, layer = "AAA2100",so=TRUE)
 
 # What layers are in the dataset?
 ogrListLayers(The_link)
