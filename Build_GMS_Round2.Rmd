@@ -33,10 +33,10 @@ str(The_Days)
 unique(The_Days$DOY_Days)
 
 # Get day 68 from The_Days
-Day_68 <- subset(The_Days,The_Days$DOY_Days == 68)
+Day_67 <- subset(The_Days,The_Days$DOY_Days == 67)
 
-any(!(is.na(Day_68$TL)))
-any(!(is.na(Day_68$TD)))
+any(!(is.na(Day_67$TL)))
+any(!(is.na(Day_67$TD)))
 
 
 ```
@@ -77,7 +77,7 @@ library(caret)
 set.seed(442)
 
 # Create the 94%/6% split
-InSub <- createDataPartition(The_Days$TEMP, p = 0.50, list = FALSE)
+InSub <- createDataPartition(The_Days$TEMP, p = 1, list = FALSE)
 
 # 6% of all data
 Sub <- The_Days[InSub, ]
@@ -169,12 +169,12 @@ Finally, we need to save the test/train sets as .Rda files, so that we can read 
 # Save train
 #save(Train_data, file = "F:/KNMI/Train_data_R2_BIG.Rda")
 #save(Train_data, file = "/run/media/kleingel/Lexar/KNMI/Train_data_R2.Rda")
-save(Train_data, file = "/usr/people/kleingel/Projects/MLProject/Train_data_R2_SMALL2.Rda")
+save(Train_data, file = "/usr/people/kleingel/Projects/MLProject/Train_data_R2_BIG.Rda")
 
 # Save test
 #save(Test_data, file = "F:/KNMI/Test_data_R2_BIG.Rda")
 #save(Test_data, file = "/run/media/kleingel/Lexar/KNMI/Test_data_R2.Rda")
-save(Test_data, file = "/usr/people/kleingel/Projects/MLProject/Test_data_R2_SMALL2.Rda")
+save(Test_data, file = "/usr/people/kleingel/Projects/MLProject/Test_data_R2_BIG.Rda")
 
 ```
 
