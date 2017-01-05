@@ -406,7 +406,7 @@ Dummy variables are included in the pca.
 library(caret)
 
 # Build the object containing the transform information
-xTrans <- preProcess(Train_set, method = c("zv", "center", "scale"),
+xTrans <- preProcess(Train_set, method = c("zv", "BoxCox", "center", "scale", "pca"),
                      na.remove = TRUE)
 
 # Summary of transform information
@@ -561,8 +561,8 @@ getwd()
 #setwd("/usr/people/kleingel/Projects/MLProject")
 
 # Save the test/train predictor sets 
-save(Train_set, file = "Train_BIG_noPCA.Rda")
-save(Test_set, file = "Test_BIG_noPCA.Rda")
+save(Train_set, file = "Train_BIG_noCat.Rda")
+save(Test_set, file = "Test_BIG_noCat.Rda")
 
 # Save the corresponding target variables
 save(Target_Train, file = "Train_Target_BIG_noM.Rda")
