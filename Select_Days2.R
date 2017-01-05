@@ -1,9 +1,9 @@
 #############################################################################################################
 
 
-# This is the script in which the GMS data for the skected days for the 2nd and 3rd model
+# This is the script in which the GMS data 
 # are put into dataframes with the right input format for the ML scripts
-
+# 3 days of data are combined into one dataset
 
 #############################################################################################################
 
@@ -46,15 +46,11 @@ Three_Days$SENSOR <- as.character(Three_Days$SENSOR)
 
 ## Download days with filtered GMS data
 Col_Classes_2 <- c("integer", "numeric", "character", "POSIXct", "character")
-Data_filtered_09_11_24 <- read.csv("/data/project/GMS/data/GMSfiltered/2009-11-24.csv", 
-                                   header = FALSE, colClasses = Col_Classes_2)
-Data_filtered_16_01_09 <- read.csv("/data/project/GMS/data/GMSfiltered/2016-01-09.csv", 
-                                   header = FALSE, colClasses = Col_Classes_2)
+
+
 Data_filtered_14_12_28 <- read.csv("/data/project/GMS/data/GMSfiltered/2014-12-28.csv", 
                                    header = FALSE, colClasses = Col_Classes_2)
 Data_filtered_15_03_24 <- read.csv("/data/project/GMS/data/GMSfiltered/2015-03-24.csv", 
-                                   header = FALSE, colClasses = Col_Classes_2)
-Data_filtered_15_03_09 <- read.csv("/data/project/GMS/data/GMSfiltered/2015-03-09.csv", 
                                    header = FALSE, colClasses = Col_Classes_2)
 Data_filtered_13_12_03 <- read.csv("/data/project/GMS/data/GMSfiltered/2013-12-03.csv", 
                                    header = FALSE, colClasses = Col_Classes_2)
@@ -76,7 +72,7 @@ library(lubridate)
 # Build a DOY column
 DOY_Days <-  as.numeric(strftime(Three_Days_3$TIMESTAMP, format = "%j"))
 
-# The selected days run from, for example 24-11-09 01:00:00 until 01:00:00 25-11-09 which means that there are 12 unique DOY values for six days of data
+# How many DOY?
 length(unique(DOY_Days)) 
 
 # Build a HOD column
@@ -105,8 +101,8 @@ Three_Days_3 <- Three_Days_3[!(Three_Days_3$LOCATION == 108|
                              Three_Days_3$LOCATION == 1503),]
 
 
-# Store the GMS six days data frame as .csv
+# Store the GMS three days data frame as .csv
 write.csv(x = Three_Days_3, file = "/usr/people/kleingel/Projects/MLProject/Three_Days.csv")
 
-# Store the GMS six days data frame as R data
+# Store the GMS three days data frame as R data
 save(x = Three_Days_3, file = "/usr/people/kleingel/Projects/MLProject/Three_Days.Rda")
