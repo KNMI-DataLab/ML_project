@@ -406,7 +406,7 @@ Dummy variables are included in the pca.
 library(caret)
 
 # Build the object containing the transform information
-xTrans <- preProcess(Train_set, method = c("zv", "BoxCox", "center", "scale", "pca"),
+xTrans <- preProcess(Train_set, method = c("zv", "center", "scale"),
                      na.remove = TRUE)
 
 # Summary of transform information
@@ -504,11 +504,15 @@ library(corrplot)
 
 # Correlation plot for the train set
 corTrain_1 <- cor(Train_set, use = "complete.obs")
+png(filename = "/usr/people/kleingel/Projects/MLProject/Corrplot_Train_BIG_noPCA")
 corrplot(corTrain_1, method = "circle")
+dev.off()
 
 # Correlation plot for the test set
 corTest_1 <- cor(Test_set, use = "complete.obs")
+png(filename = "/usr/people/kleingel/Projects/MLProject/Corrplot_Test_BIG_noPCA")
 corrplot(corTest_1, method = "circle")
+dev.off()
 
 ``` 
 
@@ -561,8 +565,8 @@ getwd()
 #setwd("/usr/people/kleingel/Projects/MLProject")
 
 # Save the test/train predictor sets 
-save(Train_set, file = "Train_BIG_noCat.Rda")
-save(Test_set, file = "Test_BIG_noCat.Rda")
+save(Train_set, file = "Train_BIG_noPCA.Rda")
+save(Test_set, file = "Test_BIG_noPCA.Rda")
 
 # Save the corresponding target variables
 save(Target_Train, file = "Train_Target_BIG_noM.Rda")
