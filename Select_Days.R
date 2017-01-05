@@ -63,14 +63,14 @@ Data_filtered_14_12_28 <- read.csv("/data/project/GMS/data/GMSfiltered/2014-12-2
                                    header = FALSE, colClasses = Col_Classes_2)
 Data_filtered_15_03_24 <- read.csv("/data/project/GMS/data/GMSfiltered/2015-03-24.csv", 
                                    header = FALSE, colClasses = Col_Classes_2)
-Data_filtered_15_03_09 <- read.csv("/data/project/GMS/data/GMSfiltered/2015-03-09.csv", 
+Data_filtered_15_03_08 <- read.csv("/data/project/GMS/data/GMSfiltered/2015-03-08.csv", 
                                    header = FALSE, colClasses = Col_Classes_2)
 Data_filtered_13_12_03 <- read.csv("/data/project/GMS/data/GMSfiltered/2013-12-03.csv", 
                                    header = FALSE, colClasses = Col_Classes_2)
 
 # Merge all these filtered days into one dataframe
 Data_filtered <- rbind.data.frame(Data_filtered_09_11_24, Data_filtered_16_01_09, Data_filtered_14_12_28,
-                                  Data_filtered_15_03_24, Data_filtered_15_03_09, Data_filtered_13_12_03)
+                                  Data_filtered_15_03_24, Data_filtered_15_03_08, Data_filtered_13_12_03)
 
 colnames(Data_filtered) <- c("LOCATION", "TEMP","SENSOR", "TIMESTAMP", "QUALITY")
 
