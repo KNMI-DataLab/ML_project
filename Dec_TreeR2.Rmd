@@ -84,7 +84,7 @@ DecTree$results
 
 # Plot the decision tree
 png("TreePlot_R2_NoPCA")
-fancyRpartPlot(DecTree$finalModel)
+fancyRpartPlot(DecTree$finalModel, sub = "Six Days train set without PCA")
 dev.off()
 
 # Variable importance
@@ -101,7 +101,8 @@ DecTree_Predict <- extractPrediction(models = list(DecTree), testX = Test_set, t
 
 # Plot the same manually (ggplot2) 
 png("DecTree_ObsPred_NoPCA")
-ggplot() + geom_point(aes(x = DecTree_Predict$obs, y = DecTree_Predict$pred))
+ggplot() + geom_point(aes(x = DecTree_Predict$obs, y = DecTree_Predict$pred)) +
+  xlab("Observed road temperature (K)") + ylab("Predicted road temperature (K)")
 dev.off()
 
 
@@ -111,8 +112,7 @@ DecTree_Residuals <- (DecTree_Predict$obs - DecTree_Predict$pred)
 # Plot the residuals versus the observed values
 png("DecTree_ResPlot_noPCA")
 plot(DecTree_Predict$obs,DecTree_Residuals, 
-  ylab="Residuals", xlab="Observed road temperature", 
-  main="Residual plot") 
+  ylab="Residuals", xlab="Observed road temperature") 
 abline(0, 0)                  
 dev.off()
 
