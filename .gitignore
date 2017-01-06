@@ -102,3 +102,9 @@ Corrplot_Train_BIG_noPCA
 Corrplot_Test_BIG_noPCA
 Corrplot_BIG_noPCA
 DecTree_noPCA.Rda
+Train_data_3D.Rda
+Test_data_3D.Rda
+Train_3D_noPCA.Rda
+Test_3D_noPCA.Rda
+Corrplot_Train_3D_noPCA
+Corrplot_Test_3D_noPCA
