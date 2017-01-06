@@ -57,14 +57,14 @@ DecTree <- train(x  = Train_set,
                      y = Target_Train, 
                      method = "rpart", 
                      trControl = trainC, 
-                 tuneLength = 10)
+                     tuneLength = 10)
 
 # Stop the cluster
 stopCluster(cluster_1)
 registerDoSEQ()
 
 #Save the model
-save(DecTree, file =  "/usr/people/kleingel/Projects/MLProject/DecTree_NoPCA.Rda")
+save(DecTree, file =  "/usr/people/kleingel/Projects/MLProject/DecTree_noPCA.Rda")
 
 ```
 
