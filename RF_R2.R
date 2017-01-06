@@ -17,10 +17,10 @@ rm(list=ls())
 
 
 # Load train
-load("/usr/people/kleingel/Projects/MLProject/Train_BIG_noPCA.Rda")
+load("/usr/people/kleingel/Projects/MLProject/Train_3D_noPCA.Rda")
 
 # Load test
-load("/usr/people/kleingel/Projects/MLProject/Test_BIG_noPCA.Rda")
+load("/usr/people/kleingel/Projects/MLProject/Test_3D_noPCA.Rda")
 
 
 
@@ -57,14 +57,15 @@ library(randomForest)
 #registerDoParallel(cluster_1)
 #getDoParWorkers()
 
-RF_trainC <- trainControl(method="cv",number=10, allowParallel = TRUE)
+RF_trainC <- trainControl(method = "repeatedcv", repeats = 5, number = 10, allowParallel = TRUE, 
+                          returnData = FALSE)
 
 The_RF <- train(x  = Train_set, 
                 y = Target_Train, 
                 method = "parRF", 
                 trControl = RF_trainC, 
                 importance = TRUE, 
-                tuneLength = 3)
+                tuneLength = 10)
 
 stopCluster(cluster_1)
 registerDoSEQ()

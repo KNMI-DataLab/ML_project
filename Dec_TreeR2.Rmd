@@ -23,10 +23,10 @@ Now load in the test and train sets and split them into target and predictor set
 
 ```{r}
 # Load train
-load("/usr/people/kleingel/Projects/MLProject/Train_BIG_noPCA.Rda")
+load("/usr/people/kleingel/Projects/MLProject/Train_3D_noPCA.Rda")
 
 # Load test
-load("/usr/people/kleingel/Projects/MLProject/Test_BIG_noPCA.Rda")
+load("/usr/people/kleingel/Projects/MLProject/Test_3D_noPCA.Rda")
 
 # Split train set into target and predictors 
 Target_Train <- Train_set$TRoad
