@@ -64,7 +64,6 @@ The_RF <- train(x  = Train_set,
                 y = Target_Train, 
                 method = "parRF", 
                 trControl = RF_trainC, 
-                importance = TRUE, 
                 tuneLength = 10)
 
 stopCluster(cluster_1)

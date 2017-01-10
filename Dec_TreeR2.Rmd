@@ -73,7 +73,7 @@ save(DecTree, file =  "/usr/people/kleingel/Projects/MLProject/DecTree_noPCA.Rda
 
 ```{r}
 #Load the model
-load("/usr/people/kleingel/Projects/MLProject/DecTree.Rda")
+load("/usr/people/dirksen/Eva/DecTree_noPCA.Rda")
 
 
 #Summary (If you plot this summary you will get a large amount of numbers printed to your screen, which won't be very interpretable. Therefore I commented this command.)
@@ -83,8 +83,8 @@ load("/usr/people/kleingel/Projects/MLProject/DecTree.Rda")
 DecTree$results
 
 # Plot the decision tree
-png("TreePlot_R2_NoPCA")
-fancyRpartPlot(DecTree$finalModel, sub = "Six Days train set without PCA")
+png("TreePlot_3D_NoPCA")
+fancyRpartPlot(DecTree$finalModel, sub = "Three Days train set without PCA")
 dev.off()
 
 # Variable importance
@@ -100,7 +100,7 @@ DecTree_Predict <- extractPrediction(models = list(DecTree), testX = Test_set, t
 #dev.off()
 
 # Plot the same manually (ggplot2) 
-png("DecTree_ObsPred_NoPCA")
+png("DecTree_ObsPred_3D_NoPCA")
 ggplot() + geom_point(aes(x = DecTree_Predict$obs, y = DecTree_Predict$pred)) +
   xlab("Observed road temperature (K)") + ylab("Predicted road temperature (K)")
 dev.off()
@@ -110,7 +110,7 @@ dev.off()
 DecTree_Residuals <- (DecTree_Predict$obs - DecTree_Predict$pred)
 
 # Plot the residuals versus the observed values
-png("DecTree_ResPlot_noPCA")
+png("DecTree_ResPlot_3D_noPCA")
 plot(DecTree_Predict$obs,DecTree_Residuals, 
   ylab="Residuals", xlab="Observed road temperature") 
 abline(0, 0)                  
