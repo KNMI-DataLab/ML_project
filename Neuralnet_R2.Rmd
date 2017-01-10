@@ -24,19 +24,19 @@ Now load in the test and train sets and split them into target and predictor set
 ```{r}
 library(caret)
 # Load train
-load("/usr/people/kleingel/Projects/MLProject/Train_BIG_noCat.Rda")
+load("/usr/people/kleingel/Projects/MLProject/Train_3D_noPCA.Rda")
 
 # Load test
-load("/usr/people/kleingel/Projects/MLProject/Test_BIG_noCat.Rda")
+load("/usr/people/kleingel/Projects/MLProject/Test_3D_noPCA.Rda")
 
-# Reduce the train set to 1% of its original size 
-# 1% equals..
-The_One_Percent <- createDataPartition(Train_set$TRoad, p = 0.01, list = FALSE)
-One_Percent_Train <- Train_set[The_One_Percent, ]
-
-# Split into Train_set and Target_Train
-Target_Train <- One_Percent_Train$TRoad
-Train_set <- subset(One_Percent_Train, select=-c(TRoad))
+# # Reduce the train set to 1% of its original size 
+# # 1% equals..
+# The_One_Percent <- createDataPartition(Train_set$TRoad, p = 0.01, list = FALSE)
+# One_Percent_Train <- Train_set[The_One_Percent, ]
+# 
+# # Split into Train_set and Target_Train
+# Target_Train <- One_Percent_Train$TRoad
+# Train_set <- subset(One_Percent_Train, select=-c(TRoad))
 
 # DOESN'T WORK. neuralnet somehow thinks you are doing classification if you center scale the target var.
 # Test the effect of centering and scaling the target variable 
@@ -44,14 +44,27 @@ Train_set <- subset(One_Percent_Train, select=-c(TRoad))
 #Target_Train <- as.vector(predict(xTrans, as.data.frame(Target_Train)))
 
 
-# # Split train set into target and predictors 
-# Target_Train <- Train_set$TRoad
-# Train_set <- subset(Train_set, select=-c(TRoad))
-# 
-# # Split test set into target and predictors
-# Target_Test <- Test_set$TRoad
-# Test_set <- subset(Test_set, select = -c(TRoad))
+# Split train set into target and predictors
+Target_Train <- Train_set$TRoad
+Train_set <- subset(Train_set, select=-c(TRoad))
 
+# Split test set into target and predictors
+Target_Test <- Test_set$TRoad
+Test_set <- subset(Test_set, select = -c(TRoad))
+
+
+# Remove all the predictors which don't say much about TW
+Train_set <- Train_set[, 1:7]
+
+Test_set <- Test_set[, 1:7]
+
+
+# Remove TD, which is highly correlated with TL
+cor(Train_set$TL, Train_set$TD)
+Train_set <- subset(Train_set, select=-c(TD))
+
+cor(Test_set$TL, Test_set$TD)
+Test_set <- subset(Test_set, select=-c(TD))
 
 ```
 
@@ -64,17 +77,21 @@ library(caret)
 library(doParallel)
 library(parallel)
 library(neuralnet)
+library(doMC)
 
-cluster_1<-makeCluster(3)
-registerDoParallel(cluster_1)
+#cluster_1<-makeCluster(3)
+#registerDoParallel(cluster_1)
+
+registerDoMC(cores = 4)
 getDoParWorkers()
 
-NN_trainC <- trainControl(method = "cv", number = 3)
+NN_trainC <- trainControl(method = "cv", number = 10, allowParallel = TRUE, returnData = FALSE)
 
 NeuralNetw <- train(x  = Train_set, 
                      y = Target_Train, 
                      method = "neuralnet", 
-                     trControl = NN_trainC)
+                     trControl = NN_trainC,
+                     tuneLength = 3)
  
                     #  hidden = c(6),
                     #  trControl = NN_trainC,

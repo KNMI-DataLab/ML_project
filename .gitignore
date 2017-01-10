@@ -108,3 +108,6 @@ Train_3D_noPCA.Rda
 Test_3D_noPCA.Rda
 Corrplot_Train_3D_noPCA
 Corrplot_Test_3D_noPCA
+DecTree_ObsPred_3D_NoPCA
+DecTree_ResPlot_3D_noPCA
+TreePlot_3D_NoPCA
